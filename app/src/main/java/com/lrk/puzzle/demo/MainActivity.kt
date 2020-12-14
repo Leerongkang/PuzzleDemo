@@ -37,12 +37,12 @@ class MainActivity : AppCompatActivity() {
                     ).apply {
                         setOnTemplateSelectListener {
                             binding.templateView.templateTabLayout.setScrollPosition(
-                                it.position / 2,
+                                it.adapterPosition / 2,
                                 0f,
                                 false
                             )
-//                            notifyDataSetChanged()
-//                            it.text.text = "123"
+                            select = it.adapterPosition
+                            notifyDataSetChanged()
                         }
                     }
                     layoutManager = templateRecyclerViweLayoutManager
