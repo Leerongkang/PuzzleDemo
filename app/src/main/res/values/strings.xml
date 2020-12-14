@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">PuzzleDemo</string>
+    <string name="border">border</string>
+    <string name="puzzle">拼图</string>
+    <string name="finish">finish</string>
+    <string name="back">back</string>
+    <string name="none_frame">无边框</string>
+</resources>

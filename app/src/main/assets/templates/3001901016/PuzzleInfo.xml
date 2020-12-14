@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<puzzle>
+    <resId>3001901010</resId>
+    <version>1</version>
+    <name>模板1-16</name>
+    <iconPath>thumbnail.post</iconPath>
+    <fullScreen>1</fullScreen>
+    <width>1600</width>
+    <height>1600</height>
+    <photoAmount>2</photoAmount>
+    <formatAmount>1</formatAmount>
+    <backgroundColor>#ffffffff</backgroundColor>
+    <backgroundType>0</backgroundType>
+    <backgroundImagePath />
+    <backgroundTile />
+    <backgroundFilter />
+    <photoPuzzlePieces>
+        <photoPuzzle>
+            <backgroundImagePath />
+            <contentMode>2</contentMode>
+            <photoIndex>0</photoIndex>
+            <borderHasNeighbors>0,0,0,1</borderHasNeighbors>
+            <frameRectArray>
+                <frameRect>{{0,0},{1600,1067}}</frameRect>
+            </frameRectArray>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>-1</leftBoundarys>
+            <bottomBoundarys>10</bottomBoundarys>
+            <rightBoundarys>-1</rightBoundarys>
+            <backgroundImageInnerFrame />
+            <maskPath />
+            <filterPath />
+        </photoPuzzle>
+        <photoPuzzle>
+            <backgroundImagePath />
+            <contentMode>2</contentMode>
+            <photoIndex>1</photoIndex>
+            <borderHasNeighbors>0,1,0,0</borderHasNeighbors>
+            <frameRectArray>
+                <frameRect>{{0,1067},{1600,533}}</frameRect>
+            </frameRectArray>
+            <topBoundarys>10</topBoundarys>
+            <leftBoundarys>-1</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>-1</rightBoundarys>
+            <filterPath />
+            <maskPath />
+            <backgroundImageInnerFrame />
+        </photoPuzzle>
+    </photoPuzzlePieces>
+    <boundaryPieces>
+        <boundaryPiece>
+            <patchIndex>10</patchIndex>
+            <frameRect>{{0,1016},{1600,100}}</frameRect>
+            <translateDirection>2</translateDirection>
+            <patchesDividedBy>0,1</patchesDividedBy>
+            <patchesPaired>-1,-1</patchesPaired>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>-1</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>-1</rightBoundarys>
+        </boundaryPiece>
+    </boundaryPieces>
+</puzzle>

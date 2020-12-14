@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layoutDescription="@xml/activity_main_scene"
+    android:background="#ECECEC"
+    tools:context="com.lrk.puzzle.demo.MainActivity">
+
+    <include
+        android:id="@+id/titleBar"
+        layout="@layout/layout_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/puzzleImageView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="32dp"
+        android:contentDescription="@string/puzzle"
+        android:src="@drawable/ic_launcher_background"
+        app:layout_constraintBottom_toTopOf="@+id/bottomTabLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titleBar" />
+
+    <ImageView
+        android:id="@+id/closeImageView"
+        android:layout_width="35dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="10dp"
+        android:background="#FFFFFF"
+        app:layout_constraintBottom_toTopOf="@id/templateView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/finish" />
+
+    <include
+        android:id="@+id/templateView"
+        layout="@layout/layout_template"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/bottomTabLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <View
+        android:id="@+id/divider2"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintBottom_toBottomOf="@+id/templateView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/bottomTabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottom_tab_height"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</androidx.constraintlayout.motion.widget.MotionLayout>

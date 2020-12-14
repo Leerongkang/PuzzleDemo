@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<puzzle>
+    <resId>3001907020</resId>
+    <version>1</version>
+    <name>模板7-20</name>
+    <iconPath>thumbnail.post</iconPath>
+    <fullScreen>0</fullScreen>
+    <width>1600</width>
+    <height>1200</height>
+    <photoAmount>7</photoAmount>
+    <formatAmount>1</formatAmount>
+    <backgroundColor>#ffffffff</backgroundColor>
+    <backgroundType>0</backgroundType>
+    <backgroundImagePath />
+    <backgroundTile />
+    <backgroundFilter />
+    <photoPuzzlePieces>
+        <photoPuzzle>
+            <backgroundImagePath />
+            <contentMode>2</contentMode>
+            <photoIndex>0</photoIndex>
+            <borderHasNeighbors>0,0,1,1</borderHasNeighbors>
+            <frameRectArray>
+                <frameRect>{{0,0},{400,600}}</frameRect>
+            </frameRectArray>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>-1</leftBoundarys>
+            <bottomBoundarys>12</bottomBoundarys>
+            <rightBoundarys>10</rightBoundarys>
+            <filterPath />
+            <maskPath />
+            <backgroundImageInnerFrame />
+        </photoPuzzle>
+        <photoPuzzle>
+            <backgroundImagePath />
+            <contentMode>2</contentMode>
+            <photoIndex>1</photoIndex>
+            <borderHasNeighbors>0,1,1,0</borderHasNeighbors>
+            <frameRectArray>
+                <frameRect>{{0,600},{400,600}}</frameRect>
+            </frameRectArray>
+            <topBoundarys>12</topBoundarys>
+            <leftBoundarys>-1</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>10</rightBoundarys>
+            <filterPath />
+            <maskPath />
+            <backgroundImageInnerFrame />
+        </photoPuzzle>
+        <photoPuzzle>
+            <backgroundImagePath />
+            <contentMode>2</contentMode>
+            <photoIndex>2</photoIndex>
+            <borderHasNeighbors>1,0,1,1</borderHasNeighbors>
+            <frameRectArray>
+                <frameRect>{{400,0},{800,300}}</frameRect>
+            </frameRectArray>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>10</leftBoundarys>
+            <bottomBoundarys>13</bottomBoundarys>
+            <rightBoundarys>11</rightBoundarys>
+            <maskPath />
+            <backgroundImageInnerFrame />
+            <filterPath />
+        </photoPuzzle>
+        <photoPuzzle>
+            <backgroundImagePath />
+            <contentMode>2</contentMode>
+            <photoIndex>3</photoIndex>
+            <borderHasNeighbors>1,1,1,1</borderHasNeighbors>
+            <frameRectArray>
+                <frameRect>{{400,300},{800,600}}</frameRect>
+            </frameRectArray>
+            <topBoundarys>13</topBoundarys>
+            <leftBoundarys>10</leftBoundarys>
+            <bottomBoundarys>14</bottomBoundarys>
+            <rightBoundarys>11</rightBoundarys>
+            <filterPath />
+            <maskPath />
+            <backgroundImageInnerFrame />
+        </photoPuzzle>
+        <photoPuzzle>
+            <backgroundImagePath />
+            <contentMode>2</contentMode>
+            <photoIndex>4</photoIndex>
+            <borderHasNeighbors>1,1,1,0</borderHasNeighbors>
+            <frameRectArray>
+                <frameRect>{{400,900},{800,300}}</frameRect>
+            </frameRectArray>
+            <topBoundarys>14</topBoundarys>
+            <leftBoundarys>10</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>11</rightBoundarys>
+            <backgroundImageInnerFrame />
+            <maskPath />
+            <filterPath />
+        </photoPuzzle>
+        <photoPuzzle>
+            <backgroundImagePath />
+            <contentMode>2</contentMode>
+            <photoIndex>5</photoIndex>
+            <borderHasNeighbors>1,0,0,1</borderHasNeighbors>
+            <frameRectArray>
+                <frameRect>{{1200,0},{400,600}}</frameRect>
+            </frameRectArray>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>11</leftBoundarys>
+            <bottomBoundarys>15</bottomBoundarys>
+            <rightBoundarys>-1</rightBoundarys>
+            <maskPath />
+            <backgroundImageInnerFrame />
+            <filterPath />
+        </photoPuzzle>
+        <photoPuzzle>
+            <backgroundImagePath />
+            <contentMode>2</contentMode>
+            <photoIndex>6</photoIndex>
+            <borderHasNeighbors>1,1,0,0</borderHasNeighbors>
+            <frameRectArray>
+                <frameRect>{{1200,600},{400,600}}</frameRect>
+            </frameRectArray>
+            <topBoundarys>15</topBoundarys>
+            <leftBoundarys>11</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>-1</rightBoundarys>
+            <maskPath />
+            <backgroundImageInnerFrame />
+            <filterPath />
+        </photoPuzzle>
+    </photoPuzzlePieces>
+    <boundaryPieces>
+        <boundaryPiece>
+            <patchIndex>10</patchIndex>
+            <frameRect>{{350,0},{100,1200}}</frameRect>
+            <translateDirection>1</translateDirection>
+            <patchesDividedBy>0,1,2,3,4</patchesDividedBy>
+            <patchesPaired>-1,11</patchesPaired>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>-1</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>11</rightBoundarys>
+        </boundaryPiece>
+        <boundaryPiece>
+            <patchIndex>11</patchIndex>
+            <frameRect>{{1150,0},{100,1200}}</frameRect>
+            <translateDirection>1</translateDirection>
+            <patchesDividedBy>2,3,4,5,6</patchesDividedBy>
+            <patchesPaired>10,-1</patchesPaired>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>10</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>-1</rightBoundarys>
+        </boundaryPiece>
+        <boundaryPiece>
+            <patchIndex>12</patchIndex>
+            <frameRect>{{0,550},{400,100}}</frameRect>
+            <translateDirection>2</translateDirection>
+            <patchesDividedBy>0,1,5,6</patchesDividedBy>
+            <patchesPaired>-1,-1</patchesPaired>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>-1</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>10</rightBoundarys>
+        </boundaryPiece>
+        <boundaryPiece>
+            <patchIndex>13</patchIndex>
+            <frameRect>{{400,250},{800,100}}</frameRect>
+            <translateDirection>2</translateDirection>
+            <patchesDividedBy>2,3</patchesDividedBy>
+            <patchesPaired>-1,14</patchesPaired>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>10</leftBoundarys>
+            <bottomBoundarys>14</bottomBoundarys>
+            <rightBoundarys>11</rightBoundarys>
+        </boundaryPiece>
+        <boundaryPiece>
+            <patchIndex>14</patchIndex>
+            <frameRect>{{400,850},{800,100}}</frameRect>
+            <translateDirection>2</translateDirection>
+            <patchesDividedBy>3,4</patchesDividedBy>
+            <patchesPaired>13,-1</patchesPaired>
+            <topBoundarys>13</topBoundarys>
+            <leftBoundarys>10</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>11</rightBoundarys>
+        </boundaryPiece>
+        <boundaryPiece>
+            <patchIndex>15</patchIndex>
+            <frameRect>{{1200,550},{400,100}}</frameRect>
+            <translateDirection>2</translateDirection>
+            <patchesDividedBy>0,1,5,6</patchesDividedBy>
+            <patchesPaired>-1,-1</patchesPaired>
+            <topBoundarys>-1</topBoundarys>
+            <leftBoundarys>11</leftBoundarys>
+            <bottomBoundarys>-1</bottomBoundarys>
+            <rightBoundarys>-1</rightBoundarys>
+        </boundaryPiece>
+    </boundaryPieces>
+</puzzle>
