@@ -5,4 +5,6 @@
     <string name="finish">finish</string>
     <string name="back">back</string>
     <string name="none_frame">无边框</string>
+    <string name="done">开始拼图</string>
+    <string name="tips">请选择1—9张图片</string>
 </resources>

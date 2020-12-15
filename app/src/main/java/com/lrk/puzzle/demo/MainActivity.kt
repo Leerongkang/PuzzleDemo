@@ -1,29 +1,55 @@
 package com.lrk.puzzle.demo
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
+import android.util.Log
+import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
-import com.meitu.puzzle.R
-import com.meitu.puzzle.databinding.ActivityMainBinding
+import com.lrk.puzzle.demo.adappter.TemplateAdapter
+import com.lrk.puzzle.demo.databinding.ActivityMainBinding
+import com.permissionx.guolindev.PermissionX
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var binding: ActivityMainBinding
-    var shouldUpdateTabLayout = false
-    var currentFrameMode = R.drawable.meitu_puzzle__frame_none to "无边框"
-
-    val templateRecyclerViweLayoutManager = LinearLayoutManager(this).apply {
+    private lateinit var binding: ActivityMainBinding
+    private var showTemplate = true
+    private var shouldUpdateTabLayout = false
+    private var currentFrameMode = R.drawable.meitu_puzzle__frame_none to "无边框"
+    private var images = emptyList<String>()
+    private var selectNum = 1
+    private val template2CategoryMap = TemplateData.templateInCategory(selectNum)
+    private val fistTemplateInCategoryMap = TemplateData.templateCategoryFirst(selectNum)
+    private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
+    }
+    private val templateAdapter = TemplateAdapter(
+        this@MainActivity,
+        TemplateData.allTemplateWithPictureNum(selectNum)
+    ).apply {
+        setOnTemplateSelectListener {
+            binding.templateView.templateTabLayout.setScrollPosition(
+                template2CategoryMap[it.adapterPosition] ?: 0,
+                0f,
+                false
+            )
+            select = it.adapterPosition
+            notifyDataSetChanged()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        images = intent.getStringArrayListExtra("images") ?: emptyList()
+        selectNum = images.size
+        Toast.makeText(this, "$selectNum", Toast.LENGTH_LONG).show()
         initViews()
     }
 
@@ -32,43 +58,25 @@ class MainActivity : AppCompatActivity() {
         binding.apply {
             templateView.apply {
                 templateRecyclerView.apply {
-                    adapter = TemplateAdapter(this@MainActivity,
-                        TemplateData.allTemplateWithPictureNum(1)
-                    ).apply {
-                        setOnTemplateSelectListener {
-                            binding.templateView.templateTabLayout.setScrollPosition(
-                                it.adapterPosition / 2,
-                                0f,
-                                false
-                            )
-                            select = it.adapterPosition
-                            notifyDataSetChanged()
-                        }
-                    }
-                    layoutManager = templateRecyclerViweLayoutManager
-                    setOnScrollChangeListener(object : View.OnScrollChangeListener {
-                        override fun onScrollChange(
-                            v: View?,
-                            scrollX: Int,
-                            scrollY: Int,
-                            oldScrollX: Int,
-                            oldScrollY: Int
-                        ) {
-                            if (shouldUpdateTabLayout) {
-                                val lastPos =
-                                    templateRecyclerViweLayoutManager.findLastVisibleItemPosition()
-                                val pos = if (lastPos == 12) {
-                                    5
-                                } else {
-                                    templateRecyclerViweLayoutManager.findFirstVisibleItemPosition() / 2
-                                }
-                                templateTabLayout.setScrollPosition(
-                                    pos, 0F, false
-                                )
+                    adapter = templateAdapter
+                    layoutManager = templateRecyclerViewLayoutManager
+                    setOnScrollChangeListener { _, _, _, _, _ ->
+                        if (shouldUpdateTabLayout) {
+                            val lastPos =
+                                templateRecyclerViewLayoutManager.findLastVisibleItemPosition()
+                            val pos = if (lastPos == templateAdapter.list.size - 1) {
+                                5
+                            } else {
+                                val firstPos =
+                                    templateRecyclerViewLayoutManager.findFirstVisibleItemPosition()
+                                template2CategoryMap[firstPos] ?: 0
                             }
-                            shouldUpdateTabLayout = true
+                            templateTabLayout.setScrollPosition(
+                                pos, 0F, false
+                            )
                         }
-                    })
+                        shouldUpdateTabLayout = true
+                    }
                 }
                 templateTabLayout.apply {
                     addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_34))
@@ -80,8 +88,9 @@ class MainActivity : AppCompatActivity() {
                     addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                         override fun onTabSelected(tab: TabLayout.Tab?) {
                             shouldUpdateTabLayout = false
-                            templateRecyclerViweLayoutManager.scrollToPositionWithOffset(
-                                (tab?.position ?: 0) * 2,
+                            val categoryPos = (tab?.position ?: 0)
+                            templateRecyclerViewLayoutManager.scrollToPositionWithOffset(
+                                fistTemplateInCategoryMap[categoryPos] ?: 0,
                                 0
                             )
                         }
@@ -123,6 +132,22 @@ class MainActivity : AppCompatActivity() {
                     }
                 })
             }
+            titleBar.backImageView.setOnClickListener {
+//                startActivity(Intent(this@MainActivity,ImageSelectActivity::class.java))
+                finish()
+            }
+            closeImageView.apply {
+                setOnClickListener {
+                    Log.e("kkl","ttt")
+                    showTemplate = !showTemplate
+                    val res =  if (showTemplate) {
+                        R.drawable.ic_down
+                    } else {
+                        R.drawable.ic_up
+                    }
+                    setImageResource(res)
+                }
+            }
         }
     }
 
@@ -145,4 +170,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dp2px(dp: Int) = (dp * resources.displayMetrics.density + 0.5f).toInt()
+
+
 }

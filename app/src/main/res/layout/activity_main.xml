@@ -23,7 +23,7 @@
         android:layout_height="0dp"
         android:layout_marginBottom="32dp"
         android:contentDescription="@string/puzzle"
-        android:src="@drawable/ic_launcher_background"
+        tools:src="@drawable/ic_launcher_background"
         app:layout_constraintBottom_toTopOf="@+id/bottomTabLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,7 +37,7 @@
         android:background="#FFFFFF"
         app:layout_constraintBottom_toTopOf="@id/templateView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/finish" />
+        app:srcCompat="@drawable/ic_down" />
 
     <include
         android:id="@+id/templateView"

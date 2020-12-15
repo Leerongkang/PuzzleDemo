@@ -1,4 +1,4 @@
-package com.lrk.puzzle.demo
+package com.lrk.puzzle.demo.adappter
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -6,10 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
-import com.meitu.puzzle.R
+import com.lrk.puzzle.demo.R
 
-class TemplateAdapter(val context: Context, var list: List<String>) : RecyclerView.Adapter<TemplateAdapter.TemplateViewHolder>() {
+class TemplateAdapter(private val context: Context, var list: List<String>) :
+    RecyclerView.Adapter<TemplateAdapter.TemplateViewHolder>() {
 
     lateinit var onTemplateSelectListener: OnTemplateSelectListener
 
@@ -27,27 +30,23 @@ class TemplateAdapter(val context: Context, var list: List<String>) : RecyclerVi
 
     override fun onBindViewHolder(holder: TemplateViewHolder, position: Int) {
         val path = if (position == select) list[position] + "_pressed" else list[position]
-        val ins = context.assets.open("templates/$path")
-        val bitmap = BitmapFactory.decodeStream(ins)
+        val inputStream = context.assets.open("templates/$path")
+        val bitmap = BitmapFactory.decodeStream(inputStream)
         holder.image.setImageBitmap(bitmap)
         holder.rootView.setOnClickListener {
             onTemplateSelectListener.onTemplateSelect(holder)
         }
     }
 
-    override fun getItemCount(): Int {
-        return 13
-    }
+    override fun getItemCount(): Int = list.size
 
     fun setOnTemplateSelectListener(block: (holder: TemplateViewHolder) -> Unit) {
-        onTemplateSelectListener = object : OnTemplateSelectListener {
-            override fun onTemplateSelect(holder: TemplateViewHolder) {
-                block(holder)
-            }
+        onTemplateSelectListener = OnTemplateSelectListener {
+            block(it)
         }
     }
 
-    interface OnTemplateSelectListener {
+    fun interface OnTemplateSelectListener {
         fun onTemplateSelect(holder: TemplateViewHolder)
     }
 }
