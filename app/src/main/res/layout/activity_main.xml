@@ -2,10 +2,11 @@
 <androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/motionLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layoutDescription="@xml/activity_main_scene"
     android:background="#ECECEC"
+    app:layoutDescription="@xml/activity_main_scene"
     tools:context="com.lrk.puzzle.demo.MainActivity">
 
     <include
@@ -17,17 +18,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/puzzleImageView"
+    <FrameLayout
+        android:id="@+id/puzzleContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="32dp"
-        android:contentDescription="@string/puzzle"
-        tools:src="@drawable/ic_launcher_background"
         app:layout_constraintBottom_toTopOf="@+id/bottomTabLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/titleBar" />
+        app:layout_constraintTop_toBottomOf="@+id/titleBar">
+        <ImageView
+            android:id="@+id/puzzleImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:contentDescription="@string/puzzle"
+            android:src="@drawable/ic_launcher_background"
+            android:layout_gravity="center"/>
+    </FrameLayout>
+
 
     <ImageView
         android:id="@+id/closeImageView"
@@ -35,12 +44,13 @@
         android:layout_height="20dp"
         android:layout_marginEnd="10dp"
         android:background="#FFFFFF"
-        app:layout_constraintBottom_toTopOf="@id/templateView"
+        android:contentDescription="@string/close"
+        app:layout_constraintBottom_toTopOf="@id/templateGroup"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_down" />
 
     <include
-        android:id="@+id/templateView"
+        android:id="@+id/templateGroup"
         layout="@layout/layout_template"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -53,7 +63,7 @@
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
         android:background="?android:attr/listDivider"
-        app:layout_constraintBottom_toBottomOf="@+id/templateView"
+        app:layout_constraintBottom_toBottomOf="@+id/templateGroup"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -63,7 +73,9 @@
         android:layout_height="@dimen/bottom_tab_height"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:tabIndicatorColor="@color/main"
+        app:tabTextColor="@color/main" />
 
 
 </androidx.constraintlayout.motion.widget.MotionLayout>

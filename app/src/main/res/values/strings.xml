@@ -7,4 +7,8 @@
     <string name="none_frame">无边框</string>
     <string name="done">开始拼图</string>
     <string name="tips">请选择1—9张图片</string>
+    <string name="all_images">全部图片</string>
+    <string name="click_to_select">click to select</string>
+    <string name="close">close</string>
+    <string name="delete">delete</string>
 </resources>

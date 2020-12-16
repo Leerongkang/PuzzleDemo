@@ -11,6 +11,7 @@
         android:layout_height="100dp"
         android:layout_marginStart="2dp"
         android:layout_marginTop="2dp"
+        android:contentDescription="@string/click_to_select"
         android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"

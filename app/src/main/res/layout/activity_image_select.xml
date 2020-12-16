@@ -6,14 +6,27 @@
     android:layout_height="match_parent"
     tools:context="com.lrk.puzzle.demo.ImageSelectActivity">
 
-    <include
-        android:id="@+id/include"
-        layout="@layout/layout_title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ImageView
+        android:id="@+id/backImageView"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:contentDescription="@string/back"
+        android:padding="@dimen/title_image_padding"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_back" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="20dp"
+        android:gravity="center_vertical"
+        android:text="@string/all_images"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/backImageView"
+        app:layout_constraintStart_toEndOf="@+id/backImageView"
+        app:layout_constraintTop_toTopOf="@+id/backImageView" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/allImageRecyclerView"
@@ -23,7 +36,7 @@
         app:layout_constraintBottom_toTopOf="@+id/textView2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/include">
+        app:layout_constraintTop_toBottomOf="@+id/backImageView">
 
     </androidx.recyclerview.widget.RecyclerView>
 
@@ -33,26 +46,27 @@
         android:layout_height="25dp"
         android:layout_marginStart="10dp"
         android:layout_marginBottom="10dp"
+        android:gravity="center_vertical"
         android:padding="2dp"
         android:text="@string/tips"
-        android:gravity="center_vertical"
         app:layout_constraintBottom_toTopOf="@+id/imageSelectedRecyclerView"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:visibility="invisible"
         android:id="@+id/selectNumTextView"
         android:layout_width="15dp"
         android:layout_height="15dp"
-        tools:text="1"
-        android:gravity="center"
-        android:background="@drawable/number_bg"
         android:layout_marginStart="5dp"
+        android:background="@drawable/number_bg"
+        android:gravity="center"
         android:textColor="@color/white"
         android:textSize="10sp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/textView2"
         app:layout_constraintStart_toEndOf="@+id/textView2"
-        app:layout_constraintTop_toTopOf="@+id/textView2" />
+        app:layout_constraintTop_toTopOf="@+id/textView2"
+        tools:text="1"
+        tools:ignore="SmallSp" />
 
     <TextView
         android:id="@+id/doneTextView"
@@ -61,11 +75,11 @@
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
         android:background="@color/disabled"
+        android:gravity="center_vertical"
         android:padding="2dp"
         android:text="@string/done"
         android:textColor="@color/white"
         android:textSize="12sp"
-        android:gravity="center_vertical"
         app:layout_constraintBottom_toTopOf="@+id/imageSelectedRecyclerView"
         app:layout_constraintEnd_toEndOf="parent" />
 

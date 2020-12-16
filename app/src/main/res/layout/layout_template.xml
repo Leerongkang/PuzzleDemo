@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#FFFFFF">
@@ -10,7 +9,6 @@
         android:id="@+id/templateTabLayout"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        app:tabMode="fixed"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -18,9 +16,9 @@
         app:tabIconTintMode="multiply"
         app:tabIndicatorColor="@color/black"
         app:tabIndicatorFullWidth="false"
+        app:tabMode="fixed"
         app:tabRippleColor="#FFFFFF"
-        app:tabSelectedTextColor="#000000"
-        app:tabTextColor="@color/purple_200" />
+        app:tabSelectedTextColor="#000000" />
 
     <View
         android:id="@+id/divider2"

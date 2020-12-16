@@ -2,7 +2,6 @@ package com.lrk.puzzle.demo
 
 import android.Manifest
 import android.content.Intent
-import android.media.ExifInterface
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
@@ -95,7 +94,7 @@ class ImageSelectActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun getLocalImages(): List<String> {
+    private suspend fun getLocalImages(): List<String> {
         val images = mutableListOf<String>()
         withContext(Dispatchers.IO) {
             val imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -109,17 +108,7 @@ class ImageSelectActivity : AppCompatActivity() {
             cursor?.let {
                 while (cursor.moveToNext()) {
                     val path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
-                    try {
-                        val exifInterface = ExifInterface(path)
-                        if (exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)
-                                ?.toInt() ?: 0 > 200
-                            && exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)
-                                ?.toInt() ?: 0 > 200
-                        ) {
-                            images.add(path)
-                        }
-                    } catch (e: Exception) {
-                    }
+                    images.add(path)
                 }
                 cursor.close()
             }
@@ -134,7 +123,7 @@ class ImageSelectActivity : AppCompatActivity() {
         ).onExplainRequestReason { scope, deniedList ->
             val message = "TryMusic 需要您同意以下权限才能正常使用"
             scope.showRequestReasonDialog(deniedList, message, "确定", "取消")
-        }.request { allGranted, grantedList, deniedList ->
+        }.request { allGranted, _, deniedList ->
             if (!allGranted) {
                 Toast.makeText(this, "您拒绝了如下权限：$deniedList", Toast.LENGTH_SHORT).show()
             }

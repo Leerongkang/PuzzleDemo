@@ -10,6 +10,7 @@
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginStart="10dp"
+        android:contentDescription="@string/delete"
         android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -19,7 +20,9 @@
         android:id="@+id/deleteImageView"
         android:layout_width="15dp"
         android:layout_height="15dp"
+        android:contentDescription="@string/delete"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/ItemImageView"
-        app:srcCompat="@drawable/ic_delete" />
+        android:background="@drawable/clear_bg"
+        app:srcCompat="@drawable/ic_clear" />
 </androidx.constraintlayout.widget.ConstraintLayout>
