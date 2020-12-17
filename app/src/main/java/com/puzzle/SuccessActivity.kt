@@ -1,4 +1,4 @@
-package com.lrk.puzzle.demo
+package com.puzzle
 
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity

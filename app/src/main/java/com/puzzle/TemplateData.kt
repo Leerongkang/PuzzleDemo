@@ -1,4 +1,4 @@
-package com.lrk.puzzle.demo
+package com.puzzle
 
 object TemplateData {
     private val data = HashMap<Int, HashMap<Int, List<String>>>().apply {

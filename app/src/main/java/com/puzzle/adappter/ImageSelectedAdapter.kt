@@ -1,4 +1,4 @@
-package com.lrk.puzzle.demo.adappter
+package com.puzzle.adappter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

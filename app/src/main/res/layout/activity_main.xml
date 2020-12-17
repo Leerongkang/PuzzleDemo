@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="#ECECEC"
     app:layoutDescription="@xml/activity_main_scene"
-    tools:context="com.lrk.puzzle.demo.MainActivity">
+    tools:context="com.lrk.puzzle.demo.com.puzzle.MainActivity">
 
     <include
         android:id="@+id/titleBar"

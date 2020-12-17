@@ -1,4 +1,4 @@
-package com.lrk.puzzle.demo.adappter
+package com.puzzle.adappter
 
 import android.graphics.BitmapFactory
 import android.view.LayoutInflater
@@ -25,7 +25,6 @@ open class ImageAdapter(val imageList: List<String>) :
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-//        holder.imageView.setImageDrawable(ColorDrawable(Color.TRANSPARENT))
         GlobalScope.launch {
             withContext(Dispatchers.Default){
                 val op = BitmapFactory.Options().apply {

@@ -1,4 +1,4 @@
-package com.lrk.puzzle.demo
+package com.puzzle
 
 import android.Manifest
 import android.content.Intent
@@ -9,8 +9,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.lrk.puzzle.demo.adappter.ImageAdapter
-import com.lrk.puzzle.demo.adappter.ImageSelectedAdapter
+import com.lrk.puzzle.demo.R
+import com.puzzle.adappter.ImageAdapter
+import com.puzzle.adappter.ImageSelectedAdapter
 import com.lrk.puzzle.demo.databinding.ActivityImageSelectBinding
 import com.permissionx.guolindev.PermissionX
 import kotlinx.coroutines.Dispatchers
