@@ -20,7 +20,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import com.lrk.puzzle.demo.R
 import com.puzzle.adappter.TemplateAdapter
-import com.lrk.puzzle.demo.databinding.ActivityMainBinding
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.layout_template.view.*
+import kotlinx.android.synthetic.main.layout_title.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -29,7 +31,6 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
     private var showTemplate = true
     private var shouldUpdateTabLayout = false
     private var currentFrameMode = R.drawable.meitu_puzzle__frame_none to "无边框"
@@ -45,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         TemplateData.allTemplateWithPictureNum(selectNum)
     ).apply {
         setOnTemplateSelectListener {
-            binding.templateGroup.templateTabLayout.setScrollPosition(
+            templateGroup.templateTabLayout.setScrollPosition(
                 template2CategoryMap[it.adapterPosition] ?: 0,
                 0f,
                 false
@@ -60,14 +61,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_main)
         images = intent.getStringArrayListExtra("images") ?: emptyList()
         selectNum = images.size
         val bitmap = BitmapFactory.decodeFile(images[0])
         imageWidth = bitmap.width
         imageHeight = bitmap.height
-        binding.puzzleImageView.setImageBitmap(bitmap)
+        puzzleImageView.setImageBitmap(bitmap)
         initViews()
     }
 
@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initTemplateViewGroup() {
-        binding.templateGroup.apply {
+        templateGroup.apply {
             templateRecyclerView.apply {
                 adapter = templateAdapter
                 layoutManager = templateRecyclerViewLayoutManager
@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                                 templateRecyclerViewLayoutManager.findFirstVisibleItemPosition()
                             template2CategoryMap[firstPos] ?: 0
                         }
-                        templateTabLayout.setScrollPosition(
+                        templateGroup.templateTabLayout.setScrollPosition(
                             pos, 0F, false
                         )
                     }
@@ -137,7 +137,7 @@ class MainActivity : AppCompatActivity() {
                     updateFrameMode()
                 }
             }
-            binding.closeImageView.apply {
+            closeImageView.apply {
                 setOnTouchListener { _, event ->
                     if (event.action == MotionEvent.ACTION_UP) {
                         showTemplate = !showTemplate
@@ -157,18 +157,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initTitleBar() {
-        binding.titleBar.apply {
+        titleBar.apply {
             backImageView.setOnClickListener {
                 finish()
             }
             finishImageView.setOnClickListener {
-                saveBitmap(binding.puzzleImageView, System.currentTimeMillis().toString())
+                saveBitmap(puzzleImageView, System.currentTimeMillis().toString())
             }
         }
     }
 
     private fun initBottomTabLayout() {
-        binding.bottomTabLayout.apply {
+        bottomTabLayout.apply {
             addTab(newTab().setText("模板"))
             addTab(newTab().setText("海报"))
             addTab(newTab().setText("自由"))
@@ -180,7 +180,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onTabUnselected(tab: TabLayout.Tab?) {}
 
                 override fun onTabReselected(tab: TabLayout.Tab?) {
-                    binding.closeImageView.performClick()
+                    closeImageView.performClick()
                 }
             })
         }
@@ -203,8 +203,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun view2bitmap(view: View): Bitmap {
-        var height = view.height
-        var width = view.width
+        val height = view.height
+        val width = view.width
         Log.e("kkl", "width $width height $height")
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -242,8 +242,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     imagePath = uri
                 }
-            } catch (e: Exception) {
-            }
+            } catch (e: Exception) { }
         }
         return imagePath
     }
@@ -255,7 +254,7 @@ class MainActivity : AppCompatActivity() {
             R.drawable.meitu_puzzle__frame_medium -> R.drawable.meitu_puzzle__frame_large to "大边框"
             else -> R.drawable.meitu_puzzle__frame_none to "无边框"
         }
-        binding.templateGroup.frameTextView.apply {
+        templateGroup.frameTextView.apply {
             text = currentFrameMode.second
             setCompoundDrawables(
                 null,
@@ -264,11 +263,6 @@ class MainActivity : AppCompatActivity() {
                 }, null, null
             )
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        binding.root.invalidate()
     }
 
     private fun dp2px(dp: Int) = (dp * resources.displayMetrics.density + 0.5f).toInt()
