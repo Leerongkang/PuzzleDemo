@@ -40,7 +40,11 @@ class ImageSelectActivity : AppCompatActivity() {
                     selectedAdapter.notifyDataSetChanged()
                     updateSelectNum()
                 } else {
-                    Toast.makeText(this@ImageSelectActivity, "最多选择9张", Toast.LENGTH_SHORT)
+                    Toast.makeText(
+                        this@ImageSelectActivity,
+                        getString(R.string.select_limit_tips),
+                        Toast.LENGTH_SHORT
+                    )
                         .show()
                 }
             }
@@ -60,7 +64,10 @@ class ImageSelectActivity : AppCompatActivity() {
         doneTextView.setOnClickListener {
             if (selectImages.size > 0) {
                 startActivity(Intent(this@ImageSelectActivity, MainActivity::class.java).apply {
-                    putStringArrayListExtra("images", selectImages)
+                    putStringArrayListExtra(
+                        getString(R.string.intent_extra_selected_images),
+                        selectImages
+                    )
                 })
             }
         }
@@ -88,7 +95,7 @@ class ImageSelectActivity : AppCompatActivity() {
                 imagesUri,
                 null,
                 "${MediaStore.Images.Media.MIME_TYPE}=? or ${MediaStore.Images.Media.MIME_TYPE}=?",
-                arrayOf("image/jpeg", "image/png"),
+                arrayOf(getString(R.string.mime_type_jpeg), getString(R.string.mime_type_png)),
                 MediaStore.Images.Media.DATE_MODIFIED
             )
             cursor?.let {
@@ -107,11 +114,20 @@ class ImageSelectActivity : AppCompatActivity() {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE
         ).onExplainRequestReason { scope, deniedList ->
-            val message = "需要您同意以下权限才能正常使用"
-            scope.showRequestReasonDialog(deniedList, message, "确定", "取消")
+            val message = getString(R.string.permission_tips)
+            scope.showRequestReasonDialog(
+                deniedList,
+                message,
+                getString(R.string.ok),
+                getString(R.string.cancel)
+            )
         }.request { allGranted, _, deniedList ->
             if (!allGranted) {
-                Toast.makeText(this, "您拒绝了如下权限：$deniedList", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    getString(R.string.denied_permissions, deniedList),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

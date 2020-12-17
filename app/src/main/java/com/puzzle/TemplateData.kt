@@ -1,64 +1,47 @@
 package com.puzzle
 
 object TemplateData {
+    private const val template34 = 0
+    private const val template11 = 1
+    private const val template43 = 2
+    private const val template169 = 3
+    private const val templateFull = 4
+    private const val templateMore = 5
     private val data = HashMap<Int, HashMap<Int, List<String>>>().apply {
         val templateMap1 = HashMap<Int, List<String>>()
-        templateMap1[0] = listOf(
-            "3001901001/thumbnail",
-            "3001901002/thumbnail",
-            "3001901003/thumbnail",
-            "3001901009/thumbnail"
+        templateMap1[template34] = listOf(
+            "3001901001",
+            "3001901002",
+            "3001901003",
+            "3001901009"
         )
-        templateMap1[1] = listOf(
-            "3001901004/thumbnail",
-            "3001901005/thumbnail",
-            "3001901006/thumbnail",
-            "3001901007/thumbnail",
-            "3001901010/thumbnail",
-            "3001901011/thumbnail"
+        templateMap1[template11] = listOf(
+            "3001901004",
+            "3001901005",
+            "3001901006",
+            "3001901007",
+            "3001901010",
+            "3001901011"
         )
-        templateMap1[2] = listOf("3001901008/thumbnail", "3001901012/thumbnail")
-        templateMap1[3] =
-            listOf("3001901013/thumbnail", "3001901014/thumbnail")
-        templateMap1[4] = listOf(
-            "3001901015/thumbnail",
-            "3001901016/thumbnail",
-            "3001901017/thumbnail"
+        templateMap1[template43] = listOf(
+            "3001901008",
+            "3001901012"
         )
-        templateMap1[5] = listOf(
-            "3001901018/thumbnail",
-            "3001901019/thumbnail",
-            "3001901020/thumbnail")
+        templateMap1[template169] = listOf(
+            "3001901013",
+            "3001901014"
+        )
+        templateMap1[templateFull] = listOf(
+            "3001901015",
+            "3001901016",
+            "3001901017"
+        )
+        templateMap1[templateMore] = listOf(
+            "3001901018",
+            "3001901019",
+            "3001901020"
+        )
         put(1, templateMap1)
-
-        val templateMap2 = HashMap<Int,List<String>>()
-        templateMap2[0] = listOf(
-            "3001901001/thumbnail",
-            "3001901002/thumbnail",
-            "3001901003/thumbnail",
-            "3001901009/thumbnail"
-        )
-        templateMap2[1] = listOf(
-            "3001901004/thumbnail",
-            "3001901005/thumbnail",
-            "3001901006/thumbnail",
-            "3001901007/thumbnail",
-            "3001901010/thumbnail",
-            "3001901011/thumbnail"
-        )
-        templateMap2[2] = listOf("3001901008/thumbnail", "3001901012/thumbnail")
-        templateMap2[3] =
-            listOf("3001901013/thumbnail", "3001901014/thumbnail")
-        templateMap2[4] = listOf(
-            "3001901015/thumbnail",
-            "3001901016/thumbnail",
-            "3001901017/thumbnail"
-        )
-        templateMap2[5] = listOf(
-            "3001901018/thumbnail",
-            "3001901019/thumbnail",
-            "3001901020/thumbnail")
-        put(2, templateMap2)
     }
 
     fun allTemplateWithPictureNum(num: Int): List<String> {

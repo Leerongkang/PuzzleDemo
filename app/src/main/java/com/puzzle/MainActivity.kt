@@ -10,7 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
+import android.text.TextUtils
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     private var selectNum = 1
     private var imageHeight = 0
     private var imageWidth = 0
-    private var currentFrameMode = R.drawable.meitu_puzzle__frame_none to "无边框"
+    private var currentFrameMode = 0 to ""
     private var images = emptyList<String>()
     private val template2CategoryMap = TemplateData.templateInCategory(selectNum)
     private val fistTemplateInCategoryMap = TemplateData.templateCategoryFirst(selectNum)
@@ -63,7 +63,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        images = intent.getStringArrayListExtra("images") ?: emptyList()
+        images = intent.getStringArrayListExtra(getString(R.string.intent_extra_selected_images))
+            ?: emptyList()
         selectNum = images.size
         val bitmap = BitmapFactory.decodeFile(images[0])
         imageWidth = bitmap.width
@@ -86,7 +87,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initFrameModeView() {
-        val drawable = ContextCompat.getDrawable(this, R.drawable.meitu_puzzle__frame_none)?.apply {
+        currentFrameMode = R.drawable.meitu_puzzle__frame_none to getString(R.string.none_frame)
+        val drawable = ContextCompat.getDrawable(this, currentFrameMode.first)?.apply {
             setBounds(0, 0, frameIconHeight.dp2px(), frameIconHeight.dp2px())
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
@@ -175,10 +177,10 @@ class MainActivity : AppCompatActivity() {
     private fun initBottomTabLayout() {
         bottomTabLayout.apply {
 
-            addTab(newTab().setText("模板"))
-            addTab(newTab().setText("海报"))
-            addTab(newTab().setText("自由"))
-            addTab(newTab().setText("拼接"))
+            addTab(newTab().setText(context.getString(R.string.template)))
+            addTab(newTab().setText(context.getString(R.string.poster)))
+            addTab(newTab().setText(context.getString(R.string.free)))
+            addTab(newTab().setText(context.getString(R.string.splice)))
 
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {}
@@ -196,12 +198,16 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch {
             val savedUri = saveLocal(fileName, bitmap)
             withContext(Dispatchers.Main) {
-                if (savedUri != null) {
+                if (!TextUtils.isEmpty(savedUri.toString())) {
                     startActivity(Intent(this@MainActivity, SuccessActivity::class.java).apply {
-                        putExtra("savedUri", savedUri)
+                        putExtra(getString(R.string.intent_extra_saved_uri), savedUri)
                     })
                 } else {
-                    Toast.makeText(this@MainActivity, "保存失败", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this@MainActivity,
+                        getString(R.string.saved_failed),
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
@@ -218,14 +224,17 @@ class MainActivity : AppCompatActivity() {
         return bitmap
     }
 
-    private suspend fun saveLocal(fileName: String, bitmap: Bitmap): Uri? {
-        var imagePath: Uri? = null
+    private suspend fun saveLocal(fileName: String, bitmap: Bitmap): Uri {
+        var imagePath: Uri = Uri.parse("")
         withContext(Dispatchers.IO) {
             try {
                 val contentValues = ContentValues()
                 contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "DCIM")
+                    contentValues.put(
+                        MediaStore.Images.Media.RELATIVE_PATH,
+                        getString(R.string.dcim)
+                    )
                 } else {
                     contentValues.put(
                         MediaStore.Images.Media.DATA, Environment.getExternalStoragePublicDirectory(
@@ -233,16 +242,17 @@ class MainActivity : AppCompatActivity() {
                         ).path
                     )
                 }
-                contentValues.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-                val uri =
-                    contentResolver.insert(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        contentValues
-                    )
+                contentValues.put(
+                    MediaStore.Images.Media.MIME_TYPE,
+                    getString(R.string.mime_type_jpeg)
+                )
+                val uri = contentResolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    contentValues
+                )
                 if (uri != null) {
-                    contentResolver.openOutputStream(uri)?.use {
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 90, it)
-                    }
+                    val outputStream = contentResolver.openOutputStream(uri)
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
                     imagePath = uri
                 }
             } catch (e: Exception) {
@@ -253,10 +263,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateFrameMode() {
         currentFrameMode = when (currentFrameMode.first) {
-            R.drawable.meitu_puzzle__frame_none -> R.drawable.meitu_puzzle__frame_small to "小边框"
-            R.drawable.meitu_puzzle__frame_small -> R.drawable.meitu_puzzle__frame_medium to "中边框"
-            R.drawable.meitu_puzzle__frame_medium -> R.drawable.meitu_puzzle__frame_large to "大边框"
-            else -> R.drawable.meitu_puzzle__frame_none to "无边框"
+            R.drawable.meitu_puzzle__frame_none ->
+                R.drawable.meitu_puzzle__frame_small to getString(R.string.small_frame)
+            R.drawable.meitu_puzzle__frame_small ->
+                R.drawable.meitu_puzzle__frame_medium to getString(R.string.medium_frame)
+            R.drawable.meitu_puzzle__frame_medium ->
+                R.drawable.meitu_puzzle__frame_large to getString(R.string.large_frame)
+            else -> R.drawable.meitu_puzzle__frame_none to getString(R.string.none_frame)
         }
 
         templateGroup.frameTextView.text = currentFrameMode.second

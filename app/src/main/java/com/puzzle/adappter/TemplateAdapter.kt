@@ -27,12 +27,14 @@ class TemplateAdapter(
     }
 
     override fun onBindViewHolder(holder: TemplateViewHolder, position: Int) {
+        val context = holder.image.context
+        val prefix = context.getString(R.string.template_path_prefix)
         val path = if (position == selectPosition) {
-            "${list[position]}_pressed"
+            prefix + list[position] + context.getString(R.string.template_path_suffix_pressed)
         } else {
-            list[position]
+            prefix + list[position] + context.getString(R.string.template_path_suffix)
         }
-        val inputStream = holder.image.context.assets.open("templates/$path")
+        val inputStream = context.assets.open(path)
         val bitmap = BitmapFactory.decodeStream(inputStream)
         holder.image.setImageBitmap(bitmap)
         holder.rootView.setOnClickListener {
