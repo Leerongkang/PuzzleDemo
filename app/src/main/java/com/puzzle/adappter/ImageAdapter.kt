@@ -12,42 +12,44 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-open class ImageAdapter(val imageList: List<String>) :
-    RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
-
-    lateinit var onselect: OnSelectedListener
-    class ImageViewHolder(val itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageView = itemView.findViewById<ImageView>(R.id.ItemImageView)
-    }
+class ImageAdapter(
+    val imageList: List<String>,
+    private val isSelected: Boolean = false,
+    private val onSelected: (adapter: ImageAdapter, position: Int) -> Unit
+) :
+    RecyclerView.Adapter<ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-        return ImageViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_image,parent,false))
+        val resId = if (isSelected) {
+            R.layout.item_image_selected
+        } else {
+            R.layout.item_image
+        }
+        return ImageViewHolder(
+            LayoutInflater.from(parent.context).inflate(resId, parent, false)
+        )
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         GlobalScope.launch {
-            withContext(Dispatchers.Default){
+            withContext(Dispatchers.Default) {
                 val op = BitmapFactory.Options().apply {
                     inSampleSize = 20
                 }
-                val bitmap = BitmapFactory.decodeFile(imageList[position],op)
-                withContext(Dispatchers.Main){
+                val bitmap = BitmapFactory.decodeFile(imageList[position], op)
+                withContext(Dispatchers.Main) {
                     holder.imageView.setImageBitmap(bitmap)
                 }
             }
         }
         holder.imageView.setOnClickListener {
-            onselect.onSelect(imageList[position],position)
+            onSelected(this, position)
         }
     }
 
     override fun getItemCount() = imageList.size
+}
 
-    fun setOnSelectedListener(listener: OnSelectedListener){
-        onselect = listener
-    }
-
-    fun interface OnSelectedListener{
-        fun onSelect(path: String,position: Int)
-    }
+class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    val imageView = itemView.findViewById<ImageView>(R.id.ItemImageView)
 }

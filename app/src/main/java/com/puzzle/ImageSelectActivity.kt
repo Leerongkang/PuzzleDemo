@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.lrk.puzzle.demo.R
 import com.puzzle.adappter.ImageAdapter
-import com.puzzle.adappter.ImageSelectedAdapter
 import com.lrk.puzzle.demo.databinding.ActivityImageSelectBinding
 import com.permissionx.guolindev.PermissionX
 import kotlinx.coroutines.Dispatchers
@@ -24,12 +23,10 @@ class ImageSelectActivity : AppCompatActivity() {
     private lateinit var binding: ActivityImageSelectBinding
 
     private val selectImages = ArrayList<String>()
-    private val selectedAdapter = ImageSelectedAdapter(selectImages).apply {
-        setOnSelectedListener { _, pos ->
-            selectImages.removeAt(pos)
-            notifyDataSetChanged()
-            updateSelectNum()
-        }
+    private val selectedAdapter = ImageAdapter(selectImages,true) { adapter, pos ->
+        selectImages.removeAt(pos)
+        adapter.notifyDataSetChanged()
+        updateSelectNum()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,16 +38,14 @@ class ImageSelectActivity : AppCompatActivity() {
         GlobalScope.launch(Dispatchers.Main) {
             val localImages = getLocalImages()
             binding.allImageRecyclerView.apply {
-                adapter = ImageAdapter(localImages).apply {
-                    setOnSelectedListener { path, _ ->
-                        if (selectImages.size < 9) {
-                            selectImages.add(path)
-                            selectedAdapter.notifyDataSetChanged()
-                            updateSelectNum()
-                        } else {
-                            Toast.makeText(this@ImageSelectActivity, "最多选择9张", Toast.LENGTH_SHORT)
-                                .show()
-                        }
+                adapter = ImageAdapter(localImages){adapter,pos ->
+                    if (selectImages.size < 9) {
+                        selectImages.add(adapter.imageList[pos])
+                        selectedAdapter.notifyDataSetChanged()
+                        updateSelectNum()
+                    } else {
+                        Toast.makeText(this@ImageSelectActivity, "最多选择9张", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
                 layoutManager = GridLayoutManager(this@ImageSelectActivity, 4)
@@ -78,7 +73,6 @@ class ImageSelectActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun updateSelectNum() {
         when (selectImages.size) {
