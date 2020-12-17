@@ -1,8 +1,8 @@
-package com.puzzle
+package com.puzzle.ui
 
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.lrk.puzzle.demo.R
 import kotlinx.android.synthetic.main.activity_success.*
 

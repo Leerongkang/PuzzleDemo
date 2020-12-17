@@ -1,5 +1,6 @@
 package com.puzzle.adappter
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
@@ -7,8 +8,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.lrk.puzzle.demo.R
+import com.puzzle.coroutine.XXMainScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -18,7 +19,9 @@ class ImageAdapter(
     private val onSelected: (adapter: ImageAdapter, position: Int) -> Unit
 ) :
     RecyclerView.Adapter<ImageViewHolder>() {
-
+    private val op = BitmapFactory.Options().apply {
+        inSampleSize = 20
+    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
         val resId = if (isSelected) {
             R.layout.item_image_selected
@@ -31,20 +34,17 @@ class ImageAdapter(
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        GlobalScope.launch {
-            withContext(Dispatchers.Default) {
-                val op = BitmapFactory.Options().apply {
-                    inSampleSize = 20
-                }
-                val bitmap = BitmapFactory.decodeFile(imageList[position], op)
-                withContext(Dispatchers.Main) {
-                    holder.imageView.setImageBitmap(bitmap)
-                }
-            }
+        XXMainScope().launch {
+            val bitmap = compressedBitmap(imageList[position])
+            holder.imageView.setImageBitmap(bitmap)
         }
         holder.imageView.setOnClickListener {
             onSelected(this, position)
         }
+    }
+
+    private suspend fun compressedBitmap(path: String): Bitmap = withContext(Dispatchers.Default) {
+        BitmapFactory.decodeFile(path, op)
     }
 
     override fun getItemCount() = imageList.size

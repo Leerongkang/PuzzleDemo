@@ -1,4 +1,4 @@
-package com.puzzle
+package com.puzzle.ui
 
 import android.Manifest
 import android.content.Intent
@@ -10,11 +10,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.lrk.puzzle.demo.R
-import com.puzzle.adappter.ImageAdapter
 import com.permissionx.guolindev.PermissionX
+import com.puzzle.adappter.ImageAdapter
+import com.puzzle.coroutine.XXMainScope
 import kotlinx.android.synthetic.main.activity_image_select.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -32,7 +32,7 @@ class ImageSelectActivity : AppCompatActivity() {
         setContentView(R.layout.activity_image_select)
         initViews()
         requestPermission()
-        GlobalScope.launch(Dispatchers.Main) {
+        XXMainScope().launch {
             val localImages = getLocalImages()
             allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
                 if (selectImages.size < 9) {
@@ -87,26 +87,24 @@ class ImageSelectActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun getLocalImages(): List<String> {
+    private suspend fun getLocalImages(): List<String> = withContext(Dispatchers.IO) {
         val images = mutableListOf<String>()
-        withContext(Dispatchers.IO) {
-            val imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            val cursor = contentResolver.query(
-                imagesUri,
-                null,
-                "${MediaStore.Images.Media.MIME_TYPE}=? or ${MediaStore.Images.Media.MIME_TYPE}=?",
-                arrayOf(getString(R.string.mime_type_jpeg), getString(R.string.mime_type_png)),
-                MediaStore.Images.Media.DATE_MODIFIED
-            )
-            cursor?.let {
-                while (cursor.moveToNext()) {
-                    val path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
-                    images.add(path)
-                }
-                cursor.close()
+        val imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val cursor = contentResolver.query(
+            imagesUri,
+            null,
+            "${MediaStore.Images.Media.MIME_TYPE}=? or ${MediaStore.Images.Media.MIME_TYPE}=?",
+            arrayOf(getString(R.string.mime_type_jpeg), getString(R.string.mime_type_png)),
+            MediaStore.Images.Media.DATE_MODIFIED
+        )
+        cursor?.let {
+            while (cursor.moveToNext()) {
+                val path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
+                images.add(path)
             }
+            cursor.close()
         }
-        return images
+        images
     }
 
     private fun requestPermission() {

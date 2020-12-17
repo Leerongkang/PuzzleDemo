@@ -13,14 +13,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PuzzleDemo">
-        <activity android:name="com.puzzle.SuccessActivity"/>
-        <activity android:name="com.puzzle.ImageSelectActivity">
+        <activity android:name="com.puzzle.ui.SuccessActivity"/>
+        <activity android:name="com.puzzle.ui.ImageSelectActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.puzzle.MainActivity" />
+        <activity android:name="com.puzzle.ui.MainActivity" />
     </application>
 </manifest>

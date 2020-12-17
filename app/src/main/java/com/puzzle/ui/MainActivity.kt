@@ -1,4 +1,4 @@
-package com.puzzle
+package com.puzzle.ui
 
 import android.content.ContentValues
 import android.content.Intent
@@ -19,13 +19,14 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import com.lrk.puzzle.demo.R
+import com.puzzle.TemplateData
 import com.puzzle.adappter.TemplateAdapter
+import com.puzzle.coroutine.XXMainScope
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.layout_template.view.*
 import kotlinx.android.synthetic.main.layout_title.*
 import kotlinx.android.synthetic.main.layout_title.view.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -66,11 +67,21 @@ class MainActivity : AppCompatActivity() {
         images = intent.getStringArrayListExtra(getString(R.string.intent_extra_selected_images))
             ?: emptyList()
         selectNum = images.size
-        val bitmap = BitmapFactory.decodeFile(images[0])
-        imageWidth = bitmap.width
-        imageHeight = bitmap.height
-        puzzleImageView.setImageBitmap(bitmap)
+        setBitmap()
         initViews()
+    }
+
+    private fun setBitmap() {
+        XXMainScope().launch {
+            val bitmap = decodeBitmap(images[0])
+            imageWidth = bitmap.width
+            imageHeight = bitmap.height
+            puzzleImageView.setImageBitmap(bitmap)
+        }
+    }
+
+    private suspend fun decodeBitmap(path: String) = withContext(Dispatchers.IO) {
+        BitmapFactory.decodeFile(path)
     }
 
     private fun initViews() {
@@ -195,20 +206,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveBitmap(view: View, fileName: String) {
         val bitmap = view2bitmap(view)
-        GlobalScope.launch {
+        XXMainScope().launch {
             val savedUri = saveLocal(fileName, bitmap)
-            withContext(Dispatchers.Main) {
-                if (!TextUtils.isEmpty(savedUri.toString())) {
-                    startActivity(Intent(this@MainActivity, SuccessActivity::class.java).apply {
-                        putExtra(getString(R.string.intent_extra_saved_uri), savedUri)
-                    })
-                } else {
-                    Toast.makeText(
-                        this@MainActivity,
-                        getString(R.string.saved_failed),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+            if (!TextUtils.isEmpty(savedUri.toString())) {
+                startActivity(Intent(this@MainActivity, SuccessActivity::class.java).apply {
+                    putExtra(getString(R.string.intent_extra_saved_uri), savedUri)
+                })
+            } else {
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(R.string.saved_failed),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
@@ -224,9 +233,9 @@ class MainActivity : AppCompatActivity() {
         return bitmap
     }
 
-    private suspend fun saveLocal(fileName: String, bitmap: Bitmap): Uri {
-        var imagePath: Uri = Uri.parse("")
+    private suspend fun saveLocal(fileName: String, bitmap: Bitmap): Uri =
         withContext(Dispatchers.IO) {
+            var imagePath: Uri = Uri.parse("")
             try {
                 val contentValues = ContentValues()
                 contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
@@ -237,7 +246,8 @@ class MainActivity : AppCompatActivity() {
                     )
                 } else {
                     contentValues.put(
-                        MediaStore.Images.Media.DATA, Environment.getExternalStoragePublicDirectory(
+                        MediaStore.Images.Media.DATA,
+                        Environment.getExternalStoragePublicDirectory(
                             Environment.DIRECTORY_PICTURES
                         ).path
                     )
@@ -257,9 +267,8 @@ class MainActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
             }
+            imagePath
         }
-        return imagePath
-    }
 
     private fun updateFrameMode() {
         currentFrameMode = when (currentFrameMode.first) {
