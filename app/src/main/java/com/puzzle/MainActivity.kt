@@ -36,28 +36,24 @@ class MainActivity : AppCompatActivity() {
     private var currentFrameMode = R.drawable.meitu_puzzle__frame_none to "无边框"
     private var images = emptyList<String>()
     private var selectNum = 1
+    private var imageHeight = 0
+    private var imageWidth = 0
     private val template2CategoryMap = TemplateData.templateInCategory(selectNum)
     private val fistTemplateInCategoryMap = TemplateData.templateCategoryFirst(selectNum)
     private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
     }
     private val templateAdapter = TemplateAdapter(
-        this@MainActivity,
         TemplateData.allTemplateWithPictureNum(selectNum)
-    ).apply {
-        setOnTemplateSelectListener {
-            templateGroup.templateTabLayout.setScrollPosition(
-                template2CategoryMap[it.adapterPosition] ?: 0,
-                0f,
-                false
-            )
-            select = it.adapterPosition
-            notifyDataSetChanged()
-        }
+    ) { adapter, holder ->
+        templateGroup.templateTabLayout.setScrollPosition(
+            template2CategoryMap[holder.adapterPosition] ?: 0,
+            0f,
+            false
+        )
+        adapter.selectPosition = holder.adapterPosition
+        adapter.notifyDataSetChanged()
     }
-
-    private var imageHeight = 0
-    private var imageWidth = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -242,7 +238,8 @@ class MainActivity : AppCompatActivity() {
                     }
                     imagePath = uri
                 }
-            } catch (e: Exception) { }
+            } catch (e: Exception) {
+            }
         }
         return imagePath
     }
