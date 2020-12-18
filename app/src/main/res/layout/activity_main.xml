@@ -5,9 +5,8 @@
     android:id="@+id/motionLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ECECEC"
-    app:layoutDescription="@xml/activity_main_scene"
-    tools:context="com.lrk.puzzle.demo.com.puzzle.MainActivity">
+    android:background="#EFEFEF"
+    app:layoutDescription="@xml/activity_main_scene">
 
     <include
         android:id="@+id/titleBar"
@@ -38,17 +37,27 @@
             tools:src="@drawable/ic_launcher_background" />
     </FrameLayout>
 
-
     <ImageView
         android:id="@+id/closeImageView"
         android:layout_width="35dp"
-        android:layout_height="20dp"
+        android:layout_height="15dp"
         android:layout_marginEnd="10dp"
-        android:background="#FFFFFF"
+        android:background="@drawable/close_image_bg"
         android:contentDescription="@string/close"
         app:layout_constraintBottom_toTopOf="@id/templateGroup"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_down" />
+
+    <ImageView
+        android:id="@+id/showImageView"
+        android:layout_width="35dp"
+        android:layout_height="15dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/close_image_bg"
+        android:contentDescription="@string/close"
+        app:layout_constraintBottom_toTopOf="@id/templateGroup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_up" />
 
     <include
         android:id="@+id/templateGroup"
@@ -76,7 +85,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:tabIndicatorColor="@color/main"
-        app:tabTextColor="@color/main" />
-
+        app:tabRippleColor="@color/disabled"
+        app:tabSelectedTextColor="@color/main"
+        app:tabTextColor="@color/black" />
 
 </androidx.constraintlayout.motion.widget.MotionLayout>

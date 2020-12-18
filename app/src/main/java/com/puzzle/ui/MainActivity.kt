@@ -12,7 +12,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.text.TextUtils
-import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -95,7 +94,6 @@ class MainActivity : AppCompatActivity() {
     private fun initTemplateViewGroup() {
         initTemplateRecyclerView()
         initTemplateTabLayout()
-        initCloseImageView()
         initFrameModeView()
     }
 
@@ -108,26 +106,6 @@ class MainActivity : AppCompatActivity() {
         templateGroup.frameTextView.setOnClickListener {
             updateFrameMode()
         }
-    }
-
-    private fun initCloseImageView() {
-        closeImageView.setOnTouchListener { view, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                updateTemplateGroupState()
-            }
-            true
-        }
-    }
-
-    private fun updateTemplateGroupState() {
-        showTemplate = !showTemplate
-        val res = if (showTemplate) {
-            R.drawable.ic_down
-        } else {
-            R.drawable.ic_up
-        }
-        closeImageView.setImageResource(res)
-        closeImageView.performClick()
     }
 
     private fun initTemplateTabLayout() {
@@ -195,13 +173,15 @@ class MainActivity : AppCompatActivity() {
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
                     if (!showTemplate) {
-                        updateTemplateGroupState()
+                        showImageView.performClick()
+                        showTemplate = !showTemplate
                     }
                 }
 
                 override fun onTabUnselected(tab: TabLayout.Tab) {}
                 override fun onTabReselected(tab: TabLayout.Tab) {
-                    updateTemplateGroupState()
+                    showImageView.performClick()
+                    showTemplate = !showTemplate
                 }
             })
         }
