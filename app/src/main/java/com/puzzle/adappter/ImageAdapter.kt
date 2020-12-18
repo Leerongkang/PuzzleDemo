@@ -2,14 +2,18 @@ package com.puzzle.adappter
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.util.lruCache
 import androidx.recyclerview.widget.RecyclerView
 import com.lrk.puzzle.demo.R
+import com.puzzle.coroutine.WorkScope
 import com.puzzle.coroutine.XXMainScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -22,6 +26,13 @@ class ImageAdapter(
     private val op = BitmapFactory.Options().apply {
         inSampleSize = 20
     }
+    private val cacheSize = (Runtime.getRuntime().maxMemory() / 8).toInt()
+    private val imageCache = lruCache<String, Bitmap>(
+        maxSize = cacheSize,
+        sizeOf = { _, bitmap ->
+            bitmap.byteCount
+        })
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
         val resId = if (isSelected) {
             R.layout.item_image_selected
@@ -34,13 +45,23 @@ class ImageAdapter(
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
+        holder.imageView.setImageResource(R.color.white)
         XXMainScope().launch {
-            val bitmap = compressedBitmap(imageList[position])
+            val bitmap = getBitmap(imageList[position])
             holder.imageView.setImageBitmap(bitmap)
         }
         holder.imageView.setOnClickListener {
-            onSelected(this, position)
+            onSelected(this, holder.layoutPosition)
         }
+    }
+
+    private suspend fun getBitmap(path: String): Bitmap {
+        var bitmap = imageCache[path]
+        if (bitmap == null) {
+            bitmap = compressedBitmap(path)
+            imageCache.put(path, bitmap)
+        }
+        return bitmap
     }
 
     private suspend fun compressedBitmap(path: String): Bitmap = withContext(Dispatchers.Default) {

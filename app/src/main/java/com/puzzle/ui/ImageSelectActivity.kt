@@ -23,7 +23,7 @@ class ImageSelectActivity : AppCompatActivity() {
     private val selectImages = ArrayList<String>()
     private val selectedAdapter = ImageAdapter(selectImages, true) { adapter, pos ->
         selectImages.removeAt(pos)
-        adapter.notifyDataSetChanged()
+        adapter.notifyItemRemoved(pos)
         updateSelectNum()
     }
 
@@ -37,7 +37,7 @@ class ImageSelectActivity : AppCompatActivity() {
             allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
                 if (selectImages.size < 9) {
                     selectImages.add(adapter.imageList[pos])
-                    selectedAdapter.notifyDataSetChanged()
+                    selectedAdapter.notifyItemInserted(selectImages.size - 1)
                     updateSelectNum()
                 } else {
                     Toast.makeText(

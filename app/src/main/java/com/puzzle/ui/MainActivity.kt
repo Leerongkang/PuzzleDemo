@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -56,8 +57,9 @@ class MainActivity : AppCompatActivity() {
                 0f,
                 false
             )
-            adapter.selectPosition = holder.adapterPosition
-            adapter.notifyDataSetChanged()
+            adapter.currentSelectPos = holder.adapterPosition
+            adapter.notifyItemChanged(adapter.currentSelectPos)
+            adapter.notifyItemChanged(adapter.lastSelectedPos)
         }
     }
 
@@ -111,31 +113,32 @@ class MainActivity : AppCompatActivity() {
     private fun initCloseImageView() {
         closeImageView.setOnTouchListener { view, event ->
             if (event.action == MotionEvent.ACTION_UP) {
-                showTemplate = !showTemplate
-                val res = if (showTemplate) {
-                    R.drawable.ic_down
-                } else {
-                    R.drawable.ic_up
-                }
-                view.performClick()
-                closeImageView.setImageResource(res)
+                updateTemplateGroupState()
             }
             true
         }
     }
 
+    private fun updateTemplateGroupState() {
+        showTemplate = !showTemplate
+        val res = if (showTemplate) {
+            R.drawable.ic_down
+        } else {
+            R.drawable.ic_up
+        }
+        closeImageView.setImageResource(res)
+        closeImageView.performClick()
+    }
+
     private fun initTemplateTabLayout() {
         templateGroup.templateTabLayout.apply {
-
             addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_34))
             addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_11))
             addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_43))
             addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_169))
             addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_full))
             addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_others))
-
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-
                 override fun onTabSelected(tab: TabLayout.Tab) {
                     shouldUpdateTabLayout = false
                     val categoryPos = (tab.position)
@@ -152,10 +155,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initTemplateRecyclerView() {
-
         templateGroup.templateRecyclerView.adapter = templateAdapter
         templateGroup.templateRecyclerView.layoutManager = templateRecyclerViewLayoutManager
-
         templateGroup.templateRecyclerView.setOnScrollChangeListener { _, _, _, _, _ ->
             if (shouldUpdateTabLayout) {
                 val lastPos =
@@ -187,18 +188,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun initBottomTabLayout() {
         bottomTabLayout.apply {
-
             addTab(newTab().setText(context.getString(R.string.template)))
             addTab(newTab().setText(context.getString(R.string.poster)))
             addTab(newTab().setText(context.getString(R.string.free)))
             addTab(newTab().setText(context.getString(R.string.splice)))
-
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-                override fun onTabSelected(tab: TabLayout.Tab) {}
-                override fun onTabUnselected(tab: TabLayout.Tab) {}
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    if (!showTemplate) {
+                        updateTemplateGroupState()
+                    }
+                }
 
+                override fun onTabUnselected(tab: TabLayout.Tab) {}
                 override fun onTabReselected(tab: TabLayout.Tab) {
-                    closeImageView.performClick()
+                    updateTemplateGroupState()
                 }
             })
         }
@@ -228,8 +231,9 @@ class MainActivity : AppCompatActivity() {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 //        view.layout(0, dp2px(60), width, height)
-//        canvas.drawColor(Color.WHITE)
+        canvas.drawColor(Color.WHITE)
         view.draw(canvas)
+
         return bitmap
     }
 
