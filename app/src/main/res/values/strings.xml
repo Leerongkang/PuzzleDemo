@@ -29,7 +29,7 @@
     <string name="poster">海报</string>
     <string name="free">自由</string>
     <string name="splice">拼接</string>
-    <string name="template_path_prefix">templates/</string>
+    <string name="template_path_prefix">templates/300190</string>
     <string name="template_path_suffix">/thumbnail</string>
     <string name="template_path_suffix_pressed">/thumbnail_pressed</string>
 </resources>

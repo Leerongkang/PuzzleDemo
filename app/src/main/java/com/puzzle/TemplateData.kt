@@ -10,36 +10,36 @@ object TemplateData {
     private val data = HashMap<Int, HashMap<Int, List<String>>>().apply {
         val templateMap1 = HashMap<Int, List<String>>()
         templateMap1[template34] = listOf(
-            "3001901001",
-            "3001901002",
-            "3001901003",
-            "3001901009"
+            "1001",
+            "1002",
+            "1003",
+            "1009"
         )
         templateMap1[template11] = listOf(
-            "3001901004",
-            "3001901005",
-            "3001901006",
-            "3001901007",
-            "3001901010",
-            "3001901011"
+            "1004",
+            "1005",
+            "1006",
+            "1007",
+            "1010",
+            "1011"
         )
         templateMap1[template43] = listOf(
-            "3001901008",
-            "3001901012"
+            "1008",
+            "1012"
         )
         templateMap1[template169] = listOf(
-            "3001901013",
-            "3001901014"
+            "1013",
+            "1014"
         )
         templateMap1[templateFull] = listOf(
-            "3001901015",
-            "3001901016",
-            "3001901017"
+            "1015",
+            "1016",
+            "1017"
         )
         templateMap1[templateMore] = listOf(
-            "3001901018",
-            "3001901019",
-            "3001901020"
+            "1018",
+            "1019",
+            "1020"
         )
         put(1, templateMap1)
     }

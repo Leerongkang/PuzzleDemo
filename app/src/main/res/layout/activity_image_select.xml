@@ -65,8 +65,8 @@
         app:layout_constraintBottom_toBottomOf="@+id/textView2"
         app:layout_constraintStart_toEndOf="@+id/textView2"
         app:layout_constraintTop_toTopOf="@+id/textView2"
-        tools:text="1"
-        tools:ignore="SmallSp" />
+        tools:ignore="SmallSp"
+        tools:text="1" />
 
     <TextView
         android:id="@+id/doneTextView"
@@ -87,6 +87,8 @@
         android:id="@+id/imageSelectedRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="70dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
