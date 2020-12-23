@@ -27,14 +27,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/titleBar">
 
-        <ImageView
+        <com.puzzle.ui.view.PuzzleLayout
             android:id="@+id/puzzleImageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:layout_marginBottom="32dp"
-            android:contentDescription="@string/puzzle"
-            tools:src="@drawable/ic_launcher_background" />
+            android:background="@color/main" />
     </FrameLayout>
 
     <ImageView

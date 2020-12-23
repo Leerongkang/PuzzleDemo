@@ -12,16 +12,21 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.text.TextUtils
+import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import com.lrk.puzzle.demo.R
+import com.puzzle.Template
 import com.puzzle.TemplateData
 import com.puzzle.adappter.TemplateAdapter
 import com.puzzle.coroutine.XXMainScope
+import com.puzzle.dp2px
+import com.puzzle.ui.view.PuzzleLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.layout_template.view.*
 import kotlinx.android.synthetic.main.layout_title.*
@@ -29,6 +34,7 @@ import kotlinx.android.synthetic.main.layout_title.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 
 class MainActivity : AppCompatActivity() {
@@ -38,12 +44,12 @@ class MainActivity : AppCompatActivity() {
     private var shouldUpdateTabLayout = false
     private val templateCategoryNum = 6
     private var selectNum = 1
-    private var imageHeight = 0
-    private var imageWidth = 0
     private var currentFrameMode = 0 to ""
     private var images = emptyList<String>()
-    private val template2CategoryMap = TemplateData.templateInCategory(selectNum)
-    private val fistTemplateInCategoryMap = TemplateData.templateCategoryFirst(selectNum)
+    private val template2CategoryMap = mutableMapOf<Int, Int>()
+    private val fistTemplateInCategoryMap = mutableMapOf<Int, Int>()
+    private val allTemplates = mutableListOf<Template>()
+    private val bitmapList = mutableListOf<Bitmap>()
     private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
     }
@@ -59,6 +65,10 @@ class MainActivity : AppCompatActivity() {
             adapter.currentSelectPos = holder.adapterPosition
             adapter.notifyItemChanged(adapter.currentSelectPos)
             adapter.notifyItemChanged(adapter.lastSelectedPos)
+            puzzleImageView.template = allTemplates[holder.adapterPosition]
+            puzzleImageView.initViews(bitmapList, allTemplates[holder.adapterPosition].imageCount)
+            resizePuzzleLayout()
+            puzzleImageView.requestLayout()
         }
     }
 
@@ -68,21 +78,56 @@ class MainActivity : AppCompatActivity() {
         images = intent.getStringArrayListExtra(getString(R.string.intent_extra_selected_images))
             ?: emptyList()
         selectNum = images.size
+        loadTemplateData()
         setBitmap()
         initViews()
     }
 
+    private fun loadTemplateData() {
+        template2CategoryMap.putAll(TemplateData.templateInCategory(selectNum))
+        fistTemplateInCategoryMap.putAll(TemplateData.templateCategoryFirst(selectNum))
+        allTemplates.addAll(TemplateData.allTemplateWithNum(selectNum))
+    }
+
     private fun setBitmap() {
         XXMainScope().launch {
-            val bitmap = decodeBitmap(images[0])
-            imageWidth = bitmap.width
-            imageHeight = bitmap.height
-            puzzleImageView.setImageBitmap(bitmap)
+            val bitmaps = decodeBitmap(images)
+            puzzleImageView.template = allTemplates[0]
+            puzzleImageView.initViews(bitmaps, allTemplates[0].imageCount)
+            puzzleContainer.post {
+                resizePuzzleLayout()
+                puzzleImageView.visibility = View.VISIBLE
+            }
         }
     }
 
-    private suspend fun decodeBitmap(path: String) = withContext(Dispatchers.IO) {
-        BitmapFactory.decodeFile(path)
+    private fun resizePuzzleLayout() {
+        val containerWidth = puzzleContainer.width
+        val containerHeight = puzzleContainer.height
+        val templateWidth = puzzleImageView.template.totalWidth
+        val templateHeight = puzzleImageView.template.totalHeight
+        var finalWidth = containerWidth
+        var finalHeight =
+            (templateHeight * (containerWidth / templateWidth.toDouble())).roundToInt()
+        if (finalHeight > containerHeight) {
+            finalHeight = containerHeight
+            finalWidth =
+                (templateWidth * (containerHeight / templateHeight.toDouble())).roundToInt()
+        }
+        puzzleImageView.proportion = finalHeight / templateHeight.toDouble()
+        puzzleImageView.layoutParams =
+            FrameLayout.LayoutParams(finalWidth, finalHeight, Gravity.CENTER)
+    }
+
+    private suspend fun decodeBitmap(path: List<String>) = withContext(Dispatchers.IO) {
+        val bitmaps = mutableListOf<Bitmap>()
+        path.forEach {
+            val decodeBitmap = BitmapFactory.decodeFile(it)
+            bitmaps.add(decodeBitmap)
+        }
+        bitmapList.clear()
+        bitmapList.addAll(bitmaps)
+        bitmaps
     }
 
     private fun initViews() {
@@ -100,7 +145,12 @@ class MainActivity : AppCompatActivity() {
     private fun initFrameModeView() {
         currentFrameMode = R.drawable.meitu_puzzle__frame_none to getString(R.string.none_frame)
         val drawable = ContextCompat.getDrawable(this, currentFrameMode.first)?.apply {
-            setBounds(0, 0, frameIconHeight.dp2px(), frameIconHeight.dp2px())
+            setBounds(
+                0,
+                0,
+                frameIconHeight.dp2px(this@MainActivity),
+                frameIconHeight.dp2px(this@MainActivity)
+            )
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
         templateGroup.frameTextView.setOnClickListener {
@@ -256,13 +306,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateFrameMode() {
         currentFrameMode = when (currentFrameMode.first) {
-            R.drawable.meitu_puzzle__frame_none ->
+            R.drawable.meitu_puzzle__frame_none -> {
+                puzzleImageView.updateFrameSize(PuzzleLayout.FRAME_SMALL)
                 R.drawable.meitu_puzzle__frame_small to getString(R.string.small_frame)
-            R.drawable.meitu_puzzle__frame_small ->
+            }
+            R.drawable.meitu_puzzle__frame_small -> {
+                puzzleImageView.updateFrameSize(PuzzleLayout.FRAME_MEDIUM)
                 R.drawable.meitu_puzzle__frame_medium to getString(R.string.medium_frame)
-            R.drawable.meitu_puzzle__frame_medium ->
+            }
+            R.drawable.meitu_puzzle__frame_medium -> {
+                puzzleImageView.updateFrameSize(PuzzleLayout.FRAME_LARGE)
                 R.drawable.meitu_puzzle__frame_large to getString(R.string.large_frame)
-            else -> R.drawable.meitu_puzzle__frame_none to getString(R.string.none_frame)
+            }
+            else -> {
+                puzzleImageView.updateFrameSize(PuzzleLayout.FRAME_NONE)
+                R.drawable.meitu_puzzle__frame_none to getString(R.string.none_frame)
+            }
         }
 
         templateGroup.frameTextView.text = currentFrameMode.second
@@ -270,10 +329,13 @@ class MainActivity : AppCompatActivity() {
             this@MainActivity,
             currentFrameMode.first
         )?.apply {
-            setBounds(0, 0, frameIconHeight.dp2px(), frameIconHeight.dp2px())
+            setBounds(
+                0,
+                0,
+                frameIconHeight.dp2px(this@MainActivity),
+                frameIconHeight.dp2px(this@MainActivity)
+            )
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
     }
-
-    private fun Int.dp2px() = (this * resources.displayMetrics.density + 0.5f).toInt()
 }
