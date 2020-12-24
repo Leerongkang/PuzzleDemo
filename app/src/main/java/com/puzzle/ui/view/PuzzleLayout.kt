@@ -3,7 +3,6 @@ package com.puzzle.ui.view
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.AttributeSet
-import android.util.Log
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ImageView.ScaleType
@@ -22,7 +21,7 @@ class PuzzleLayout @JvmOverloads constructor(
     }
 
     var template = Template(
-        4, 1024, 1024,"1001", listOf(
+        4, 1024, 1024, "1001", listOf(
             TemplateInfo(0, 0, 1024, 512),
             TemplateInfo(0, 512, 1024, 1024)
         )
@@ -35,7 +34,6 @@ class PuzzleLayout @JvmOverloads constructor(
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        val start = System.currentTimeMillis()
         val templateInfoList = template.templates
         for (i in templateInfoList.indices) {
             val imageView = getChildAt(i)

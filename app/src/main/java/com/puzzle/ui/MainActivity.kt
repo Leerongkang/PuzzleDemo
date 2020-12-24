@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     private val fistTemplateInCategoryMap = mutableMapOf<Int, Int>()
     private val allTemplates = mutableListOf<Template>()
     private val bitmapList = mutableListOf<Bitmap>()
+    private var puzzleViewInit = false
     private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
     }
@@ -57,18 +58,23 @@ class MainActivity : AppCompatActivity() {
         TemplateAdapter(
             TemplateData.allTemplateWithPictureNum(selectNum)
         ) { adapter, holder ->
-            templateGroup.templateTabLayout.setScrollPosition(
-                template2CategoryMap[holder.adapterPosition] ?: 0,
-                0f,
-                false
-            )
-            adapter.currentSelectPos = holder.adapterPosition
-            adapter.notifyItemChanged(adapter.currentSelectPos)
-            adapter.notifyItemChanged(adapter.lastSelectedPos)
-            puzzleImageView.template = allTemplates[holder.adapterPosition]
-            puzzleImageView.initViews(bitmapList, allTemplates[holder.adapterPosition].imageCount)
-            resizePuzzleLayout()
-            puzzleImageView.requestLayout()
+            if (puzzleViewInit) {
+                templateGroup.templateTabLayout.setScrollPosition(
+                    template2CategoryMap[holder.adapterPosition] ?: 0,
+                    0f,
+                    false
+                )
+                adapter.currentSelectPos = holder.adapterPosition
+                adapter.notifyItemChanged(adapter.currentSelectPos)
+                adapter.notifyItemChanged(adapter.lastSelectedPos)
+                puzzleImageView.template = allTemplates[holder.adapterPosition]
+                puzzleImageView.initViews(
+                    bitmapList,
+                    allTemplates[holder.adapterPosition].imageCount
+                )
+                resizePuzzleLayout()
+                puzzleImageView.requestLayout()
+            }
         }
     }
 
@@ -96,7 +102,7 @@ class MainActivity : AppCompatActivity() {
             puzzleImageView.initViews(bitmaps, allTemplates[0].imageCount)
             puzzleContainer.post {
                 resizePuzzleLayout()
-                puzzleImageView.visibility = View.VISIBLE
+                puzzleViewInit = true
             }
         }
     }
@@ -164,8 +170,10 @@ class MainActivity : AppCompatActivity() {
             addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_11))
             addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_43))
             addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_169))
-            addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_full))
-            addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_others))
+            if (selectNum < 7) {
+                addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_full))
+                addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_others))
+            }
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
                     shouldUpdateTabLayout = false
