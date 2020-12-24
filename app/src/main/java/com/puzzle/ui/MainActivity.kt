@@ -128,14 +128,13 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun decodeBitmap(path: List<String>) = withContext(Dispatchers.IO) {
         val bitmaps = mutableListOf<Bitmap>()
+        val op = BitmapFactory.Options()
         path.forEach {
             val exifInterface = ExifInterface(it)
             val imageHeight = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt()?:0
             val imageWidth =    exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt()?:0
             val scalingRatio = if (imageHeight > imageWidth) {imageHeight / 1000} else {imageWidth / 1000}
-            val op = BitmapFactory.Options().apply {
-                inSampleSize = scalingRatio
-            }
+            op.inSampleSize = scalingRatio
             val decodeBitmap = BitmapFactory.decodeFile(it, op)
             bitmaps.add(decodeBitmap)
         }

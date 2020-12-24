@@ -2,6 +2,7 @@ package com.puzzle.adappter
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.ExifInterface
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,9 +24,8 @@ class ImageAdapter(
     private val onSelected: (adapter: ImageAdapter, position: Int) -> Unit
 ) :
     RecyclerView.Adapter<ImageViewHolder>() {
-    private val op = BitmapFactory.Options().apply {
-        inSampleSize = 20
-    }
+    private val op = BitmapFactory.Options()
+    private val bitmapSize = 200
     private val cacheSize = (Runtime.getRuntime().maxMemory() / 8).toInt()
     private val imageCache = lruCache<String, Bitmap>(
         maxSize = cacheSize,
@@ -65,6 +65,11 @@ class ImageAdapter(
     }
 
     private suspend fun compressedBitmap(path: String): Bitmap = withContext(Dispatchers.Default) {
+        val exifInterface = ExifInterface(path)
+        val imageHeight = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt()?:0
+        val imageWidth =    exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt()?:0
+        val scalingRatio = if (imageHeight > imageWidth) {imageHeight / bitmapSize} else {imageWidth / bitmapSize}
+        op.inSampleSize = scalingRatio
         BitmapFactory.decodeFile(path, op)
     }
 
