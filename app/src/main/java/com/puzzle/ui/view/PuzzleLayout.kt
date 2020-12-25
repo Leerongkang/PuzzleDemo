@@ -6,8 +6,8 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ImageView.ScaleType
-import com.puzzle.Template
-import com.puzzle.TemplateInfo
+import com.puzzle.template.Template
+import com.puzzle.template.TemplateInfo
 import com.puzzle.dp2px
 
 class PuzzleLayout @JvmOverloads constructor(

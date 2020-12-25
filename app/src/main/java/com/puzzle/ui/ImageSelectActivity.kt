@@ -32,6 +32,9 @@ class ImageSelectActivity : AppCompatActivity() {
         setContentView(R.layout.activity_image_select)
         initViews()
         requestPermission()
+    }
+
+    fun initAllImageRecyclerView(){
         XXMainScope().launch {
             val localImages = getLocalImages()
             allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
@@ -126,6 +129,8 @@ class ImageSelectActivity : AppCompatActivity() {
                     getString(R.string.denied_permissions, deniedList),
                     Toast.LENGTH_SHORT
                 ).show()
+            } else {
+                initAllImageRecyclerView()
             }
         }
     }

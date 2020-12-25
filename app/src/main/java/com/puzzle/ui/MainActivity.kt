@@ -22,8 +22,8 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import com.lrk.puzzle.demo.R
-import com.puzzle.Template
-import com.puzzle.TemplateData
+import com.puzzle.template.Template
+import com.puzzle.template.TemplateData
 import com.puzzle.adappter.TemplateAdapter
 import com.puzzle.coroutine.XXMainScope
 import com.puzzle.dp2px
@@ -125,6 +125,7 @@ class MainActivity : AppCompatActivity() {
         }
         bitmapList.clear()
         bitmapList.addAll(bitmaps)
+//        PuzzleQualityManager.puzzleQuality.metric.input_suc = PuzzleMetric.
         bitmaps
     }
 

@@ -1,4 +1,4 @@
-package com.puzzle
+package com.puzzle.template
 
 import android.content.Context
 import com.google.gson.Gson

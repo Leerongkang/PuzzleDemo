@@ -1,4 +1,4 @@
-package com.puzzle
+package com.puzzle.template
 
 data class Template(
     val imageCount: Int,
