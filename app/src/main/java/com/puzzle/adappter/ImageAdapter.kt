@@ -2,8 +2,7 @@ package com.puzzle.adappter
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.ExifInterface
-import android.util.Log
+import androidx.exifinterface.media.ExifInterface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,10 +10,8 @@ import android.widget.ImageView
 import androidx.core.util.lruCache
 import androidx.recyclerview.widget.RecyclerView
 import com.lrk.puzzle.demo.R
-import com.puzzle.coroutine.WorkScope
 import com.puzzle.coroutine.XXMainScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -26,7 +23,7 @@ class ImageAdapter(
     RecyclerView.Adapter<ImageViewHolder>() {
     private val op = BitmapFactory.Options()
     private val bitmapSize = 200
-    private val cacheSize = (Runtime.getRuntime().maxMemory() / 8).toInt()
+    private val cacheSize = (Runtime.getRuntime().maxMemory() / 4).toInt()
     private val imageCache = lruCache<String, Bitmap>(
         maxSize = cacheSize,
         sizeOf = { _, bitmap ->
@@ -64,11 +61,15 @@ class ImageAdapter(
         return bitmap
     }
 
-    private suspend fun compressedBitmap(path: String): Bitmap = withContext(Dispatchers.Default) {
+    private suspend fun compressedBitmap(path: String): Bitmap = withContext(Dispatchers.IO) {
         val exifInterface = ExifInterface(path)
-        val imageHeight = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt()?:0
-        val imageWidth =    exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt()?:0
-        val scalingRatio = if (imageHeight > imageWidth) {imageHeight / bitmapSize} else {imageWidth / bitmapSize}
+        val imageHeight = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt() ?: 0
+        val imageWidth = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt() ?: 0
+        val scalingRatio = if (imageHeight > imageWidth) {
+            imageHeight / bitmapSize
+        } else {
+            imageWidth / bitmapSize
+        }
         op.inSampleSize = scalingRatio
         BitmapFactory.decodeFile(path, op)
     }

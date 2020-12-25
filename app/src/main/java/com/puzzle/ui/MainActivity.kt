@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.media.ExifInterface
+import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -55,29 +55,6 @@ class MainActivity : AppCompatActivity() {
     private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
     }
-    private val templateAdapter by lazy {
-        TemplateAdapter(
-            TemplateData.allTemplateWithPictureNum(selectNum)
-        ) { adapter, holder ->
-            if (puzzleViewInit) {
-                templateGroup.templateTabLayout.setScrollPosition(
-                    template2CategoryMap[holder.adapterPosition] ?: 0,
-                    0f,
-                    false
-                )
-                adapter.currentSelectPos = holder.adapterPosition
-                adapter.notifyItemChanged(adapter.currentSelectPos)
-                adapter.notifyItemChanged(adapter.lastSelectedPos)
-                puzzleImageView.template = allTemplates[holder.adapterPosition]
-                puzzleImageView.initViews(
-                    bitmapList,
-                    allTemplates[holder.adapterPosition].imageCount
-                )
-                resizePuzzleLayout()
-                puzzleImageView.requestLayout()
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,34 +62,37 @@ class MainActivity : AppCompatActivity() {
         images = intent.getStringArrayListExtra(getString(R.string.intent_extra_selected_images))
             ?: emptyList()
         selectNum = images.size
-        loadTemplateData()
-        setBitmap()
-        initViews()
+        initWithCoroutines()
     }
 
-    private fun loadTemplateData() {
-        template2CategoryMap.putAll(TemplateData.templateInCategory(selectNum))
-        fistTemplateInCategoryMap.putAll(TemplateData.templateCategoryFirst(selectNum))
-        allTemplates.addAll(TemplateData.allTemplateWithNum(selectNum))
-    }
-
-    private fun setBitmap() {
+    private fun initWithCoroutines() {
         XXMainScope().launch {
+            loadTemplateData()
             val bitmaps = decodeBitmap(images)
-            puzzleImageView.template = allTemplates[0]
-            puzzleImageView.initViews(bitmaps, allTemplates[0].imageCount)
+            puzzleLayout.template = allTemplates[0]
+            puzzleLayout.initViews(bitmaps, allTemplates[0].imageCount)
             puzzleContainer.post {
                 resizePuzzleLayout()
                 puzzleViewInit = true
             }
+            initViews()
         }
     }
 
+    private suspend fun loadTemplateData() {
+        template2CategoryMap.putAll(TemplateData.templateInCategory(selectNum, this))
+        fistTemplateInCategoryMap.putAll(TemplateData.templateCategoryFirst(selectNum, this))
+        allTemplates.addAll(TemplateData.allTemplateWithNum(selectNum, this))
+    }
+
+    /**
+     * 根据屏幕宽高计算拼图的大小
+     */
     private fun resizePuzzleLayout() {
         val containerWidth = puzzleContainer.width
         val containerHeight = puzzleContainer.height
-        val templateWidth = puzzleImageView.template.totalWidth
-        val templateHeight = puzzleImageView.template.totalHeight
+        val templateWidth = puzzleLayout.template.totalWidth
+        val templateHeight = puzzleLayout.template.totalHeight
         var finalWidth = containerWidth
         var finalHeight =
             (templateHeight * (containerWidth / templateWidth.toDouble())).roundToInt()
@@ -121,8 +101,8 @@ class MainActivity : AppCompatActivity() {
             finalWidth =
                 (templateWidth * (containerHeight / templateHeight.toDouble())).roundToInt()
         }
-        puzzleImageView.proportion = finalHeight / templateHeight.toDouble()
-        puzzleImageView.layoutParams =
+        puzzleLayout.proportion = finalHeight / templateHeight.toDouble()
+        puzzleLayout.layoutParams =
             FrameLayout.LayoutParams(finalWidth, finalHeight, Gravity.CENTER)
     }
 
@@ -131,9 +111,14 @@ class MainActivity : AppCompatActivity() {
         val op = BitmapFactory.Options()
         path.forEach {
             val exifInterface = ExifInterface(it)
-            val imageHeight = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt()?:0
-            val imageWidth =    exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt()?:0
-            val scalingRatio = if (imageHeight > imageWidth) {imageHeight / 1000} else {imageWidth / 1000}
+            val imageHeight =
+                exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt() ?: 0
+            val imageWidth = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt() ?: 0
+            val scalingRatio = if (imageHeight > imageWidth) {
+                imageHeight / 1000
+            } else {
+                imageWidth / 1000
+            }
             op.inSampleSize = scalingRatio
             val decodeBitmap = BitmapFactory.decodeFile(it, op)
             bitmaps.add(decodeBitmap)
@@ -143,13 +128,13 @@ class MainActivity : AppCompatActivity() {
         bitmaps
     }
 
-    private fun initViews() {
+    private suspend fun initViews() {
         initTitleBar()
         initTemplateViewGroup()
         initBottomTabLayout()
     }
 
-    private fun initTemplateViewGroup() {
+    private suspend fun initTemplateViewGroup() {
         initTemplateRecyclerView()
         initTemplateTabLayout()
         initFrameModeView()
@@ -173,12 +158,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun initTemplateTabLayout() {
         templateGroup.templateTabLayout.apply {
-            addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_34))
-            addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_11))
-            addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_43))
-            addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_169))
-            if (selectNum < 7) {
+            if (fistTemplateInCategoryMap[TemplateData.template34] != null) {
+                addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_34))
+            }
+            if (fistTemplateInCategoryMap[TemplateData.template11] != null) {
+                addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_11))
+            }
+            if (fistTemplateInCategoryMap[TemplateData.template43] != null) {
+                addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_43))
+            }
+            if (fistTemplateInCategoryMap[TemplateData.template169] != null) {
+                addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_169))
+            }
+            if (fistTemplateInCategoryMap[TemplateData.templateFull] != null) {
                 addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_full))
+            }
+            if (fistTemplateInCategoryMap[TemplateData.templateMore] != null) {
                 addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_others))
             }
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -197,14 +192,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun initTemplateRecyclerView() {
-        templateGroup.templateRecyclerView.adapter = templateAdapter
+    private suspend fun initTemplateRecyclerView() {
+        templateGroup.templateRecyclerView.adapter = TemplateAdapter(
+            TemplateData.allTemplateThumbnailPathWithNum(selectNum, this)
+        ) { adapter, holder ->
+            if (puzzleViewInit) {
+                templateGroup.templateTabLayout.setScrollPosition(
+                    template2CategoryMap[holder.adapterPosition] ?: 0,
+                    0f,
+                    false
+                )
+                adapter.currentSelectPos = holder.adapterPosition
+                adapter.notifyItemChanged(adapter.currentSelectPos)
+                adapter.notifyItemChanged(adapter.lastSelectedPos)
+                puzzleLayout.template = allTemplates[holder.adapterPosition]
+                puzzleLayout.initViews(
+                    bitmapList,
+                    allTemplates[holder.adapterPosition].imageCount
+                )
+                resizePuzzleLayout()
+                puzzleLayout.requestLayout()
+            }
+        }
         templateGroup.templateRecyclerView.layoutManager = templateRecyclerViewLayoutManager
         templateGroup.templateRecyclerView.setOnScrollChangeListener { _, _, _, _, _ ->
             if (shouldUpdateTabLayout) {
                 val lastPos =
                     templateRecyclerViewLayoutManager.findLastVisibleItemPosition()
-                val pos = if (lastPos == templateAdapter.list.size - 1) {
+                val pos = if (lastPos == allTemplates.size - 1) {
                     templateCategoryNum - 1
                 } else {
                     val firstPos =
@@ -224,10 +239,9 @@ class MainActivity : AppCompatActivity() {
             finish()
         }
         titleBar.finishImageView.setOnClickListener {
-            saveBitmap(puzzleImageView, System.currentTimeMillis().toString())
+            saveBitmap(puzzleLayout, System.currentTimeMillis().toString())
         }
     }
-
 
     private fun initBottomTabLayout() {
         bottomTabLayout.apply {
@@ -275,10 +289,8 @@ class MainActivity : AppCompatActivity() {
         val width = view.width
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-//        view.layout(0, dp2px(60), width, height)
         canvas.drawColor(Color.WHITE)
         view.draw(canvas)
-
         return bitmap
     }
 
@@ -322,19 +334,19 @@ class MainActivity : AppCompatActivity() {
     private fun updateFrameMode() {
         currentFrameMode = when (currentFrameMode.first) {
             R.drawable.meitu_puzzle__frame_none -> {
-                puzzleImageView.updateFrameSize(PuzzleLayout.FRAME_SMALL)
+                puzzleLayout.updateFrameSize(PuzzleLayout.FRAME_SMALL)
                 R.drawable.meitu_puzzle__frame_small to getString(R.string.small_frame)
             }
             R.drawable.meitu_puzzle__frame_small -> {
-                puzzleImageView.updateFrameSize(PuzzleLayout.FRAME_MEDIUM)
+                puzzleLayout.updateFrameSize(PuzzleLayout.FRAME_MEDIUM)
                 R.drawable.meitu_puzzle__frame_medium to getString(R.string.medium_frame)
             }
             R.drawable.meitu_puzzle__frame_medium -> {
-                puzzleImageView.updateFrameSize(PuzzleLayout.FRAME_LARGE)
+                puzzleLayout.updateFrameSize(PuzzleLayout.FRAME_LARGE)
                 R.drawable.meitu_puzzle__frame_large to getString(R.string.large_frame)
             }
             else -> {
-                puzzleImageView.updateFrameSize(PuzzleLayout.FRAME_NONE)
+                puzzleLayout.updateFrameSize(PuzzleLayout.FRAME_NONE)
                 R.drawable.meitu_puzzle__frame_none to getString(R.string.none_frame)
             }
         }

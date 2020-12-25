@@ -95,7 +95,7 @@ class ImageSelectActivity : AppCompatActivity() {
             null,
             "${MediaStore.Images.Media.MIME_TYPE}=? or ${MediaStore.Images.Media.MIME_TYPE}=?",
             arrayOf(getString(R.string.mime_type_jpeg), getString(R.string.mime_type_png)),
-            MediaStore.Images.Media.DATE_MODIFIED
+            "${MediaStore.Images.Media.DATE_MODIFIED} desc"
         )
         cursor?.let {
             while (cursor.moveToNext()) {
