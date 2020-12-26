@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.util.lruCache
 import androidx.recyclerview.widget.RecyclerView
-import com.lrk.puzzle.demo.R
+import com.puzzle.R
 import com.puzzle.coroutine.XXMainScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

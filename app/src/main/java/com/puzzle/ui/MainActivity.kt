@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.text.TextUtils
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
@@ -21,7 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
-import com.lrk.puzzle.demo.R
+import com.puzzle.R
 import com.puzzle.template.Template
 import com.puzzle.template.TemplateData
 import com.puzzle.adappter.TemplateAdapter
@@ -35,6 +36,7 @@ import kotlinx.android.synthetic.main.layout_title.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import kotlin.math.roundToInt
 
 
@@ -299,35 +301,41 @@ class MainActivity : AppCompatActivity() {
         withContext(Dispatchers.IO) {
             var imagePath: Uri = Uri.parse("")
             try {
-                val contentValues = ContentValues()
-                contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val contentValues = ContentValues()
+                    contentValues.put(
+                        MediaStore.Images.Media.DISPLAY_NAME,
+                        fileName
+                    )
                     contentValues.put(
                         MediaStore.Images.Media.RELATIVE_PATH,
                         getString(R.string.dcim)
                     )
-                } else {
                     contentValues.put(
-                        MediaStore.Images.Media.DATA,
-                        Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_PICTURES
-                        ).path
+                        MediaStore.Images.Media.MIME_TYPE,
+                        getString(R.string.mime_type_jpeg)
                     )
-                }
-                contentValues.put(
-                    MediaStore.Images.Media.MIME_TYPE,
-                    getString(R.string.mime_type_jpeg)
-                )
-                val uri = contentResolver.insert(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    contentValues
-                )
-                if (uri != null) {
-                    val outputStream = contentResolver.openOutputStream(uri)
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-                    imagePath = uri
+                    val uri = contentResolver.insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentValues
+                    )
+                    if (uri != null) {
+                        val outputStream = contentResolver.openOutputStream(uri)
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                        imagePath = uri
+                    }
+                } else {
+                    val dir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DCIM
+                    )
+                    val imageFile = File(dir, "$fileName.jpg")
+                    val outputStream = imageFile.outputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    imagePath = Uri.parse(imageFile.path)
+                    sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, imagePath))
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
             }
             imagePath
         }

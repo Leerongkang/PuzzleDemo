@@ -33,7 +33,7 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:layout_marginBottom="32dp"
-            android:background="@color/main" />
+            android:background="@color/white" />
     </FrameLayout>
 
     <ImageView

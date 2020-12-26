@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.lrk.puzzle.demo.R
+import com.puzzle.R
 import com.permissionx.guolindev.PermissionX
 import com.puzzle.adappter.ImageAdapter
 import com.puzzle.coroutine.XXMainScope
