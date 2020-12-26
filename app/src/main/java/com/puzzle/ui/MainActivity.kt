@@ -6,29 +6,27 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.text.TextUtils
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.exifinterface.media.ExifInterface
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.puzzle.R
-import com.puzzle.template.Template
-import com.puzzle.template.TemplateData
 import com.puzzle.adappter.TemplateAdapter
 import com.puzzle.coroutine.XXMainScope
 import com.puzzle.dp2px
+import com.puzzle.template.Template
+import com.puzzle.template.TemplateData
 import com.puzzle.ui.view.PuzzleLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.layout_template.view.*
@@ -40,7 +38,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.roundToInt
 
-
+/**
+ * 拼图Activity
+ */
 class MainActivity : AppCompatActivity() {
 
     private val frameIconHeight = 40
@@ -118,10 +118,10 @@ class MainActivity : AppCompatActivity() {
                 exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt() ?: 0
             val imageWidth = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt() ?: 0
             val scalingRatio = if (imageHeight > imageWidth) {
-                                        imageHeight / 1000
-                                    } else {
-                                        imageWidth / 1000
-                                    }
+                imageHeight / 1000
+            } else {
+                imageWidth / 1000
+            }
             op.inSampleSize = scalingRatio
             val decodeBitmap = BitmapFactory.decodeFile(it, op)
 //            val decodeBitmap: Bitmap = Glide.with(this@MainActivity)
@@ -155,8 +155,8 @@ class MainActivity : AppCompatActivity() {
             setBounds(
                 0,
                 0,
-                frameIconHeight.dp2px(this@MainActivity),
-                frameIconHeight.dp2px(this@MainActivity)
+                frameIconHeight.dp2px(),
+                frameIconHeight.dp2px()
             )
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
@@ -205,23 +205,24 @@ class MainActivity : AppCompatActivity() {
         templateGroup.templateRecyclerView.adapter = TemplateAdapter(
             TemplateData.allTemplateThumbnailPathWithNum(selectNum, this)
         ) { adapter, holder ->
-            if (puzzleViewInit) {
-                templateGroup.templateTabLayout.setScrollPosition(
-                    template2CategoryMap[holder.adapterPosition] ?: 0,
-                    0f,
-                    false
-                )
-                adapter.currentSelectPos = holder.adapterPosition
-                adapter.notifyItemChanged(adapter.currentSelectPos)
-                adapter.notifyItemChanged(adapter.lastSelectedPos)
-                puzzleLayout.template = allTemplates[holder.adapterPosition]
-                puzzleLayout.initViews(
-                    bitmapList,
-                    allTemplates[holder.adapterPosition].imageCount
-                )
-                resizePuzzleLayout()
-                puzzleLayout.requestLayout()
+            if (!puzzleViewInit) {
+                return@TemplateAdapter
             }
+            templateGroup.templateTabLayout.setScrollPosition(
+                template2CategoryMap[holder.adapterPosition] ?: 0,
+                0f,
+                false
+            )
+            adapter.currentSelectPos = holder.adapterPosition
+            adapter.notifyItemChanged(adapter.currentSelectPos)
+            adapter.notifyItemChanged(adapter.lastSelectedPos)
+            puzzleLayout.template = allTemplates[holder.adapterPosition]
+            puzzleLayout.initViews(
+                bitmapList,
+                allTemplates[holder.adapterPosition].imageCount
+            )
+            resizePuzzleLayout()
+            puzzleLayout.requestLayout()
         }
         templateGroup.templateRecyclerView.layoutManager = templateRecyclerViewLayoutManager
         templateGroup.templateRecyclerView.setOnScrollChangeListener { _, _, _, _, _ ->
@@ -374,8 +375,8 @@ class MainActivity : AppCompatActivity() {
             setBounds(
                 0,
                 0,
-                frameIconHeight.dp2px(this@MainActivity),
-                frameIconHeight.dp2px(this@MainActivity)
+                frameIconHeight.dp2px(),
+                frameIconHeight.dp2px()
             )
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)

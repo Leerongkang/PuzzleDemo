@@ -9,7 +9,9 @@ import java.io.BufferedReader
 import java.io.FileNotFoundException
 import java.io.FileReader
 import java.io.IOException
-
+/**
+ * 拼图质量上报单例
+ */
 object PuzzleQualityManager {
 
     val puzzleQuality = PuzzleQuality(

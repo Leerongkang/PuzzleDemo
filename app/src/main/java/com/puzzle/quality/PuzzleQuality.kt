@@ -1,11 +1,8 @@
 package com.puzzle.template
 
-import android.os.Build
-import java.io.BufferedReader
-import java.io.FileNotFoundException
-import java.io.FileReader
-import java.io.IOException
-
+/**
+ * 拼图质量实体类
+ */
 data class PuzzleQuality(
     var name: String = "拼图",
     var category: String = "metric",
@@ -18,12 +15,12 @@ data class PuzzleQuality(
  * 机型环境上下文的信息。
  */
 data class Baggage(
-    var android_sdk_int: Int,       //  Android API Level
-    var runtime_max_memory: Int,    //  JVM 最大可分配空间。单位MB。
-    var cpu: String,                //  CPU型号信息
-    var cpu_vendor: String,         //  CPU厂商信息
-    var processor_count: Int,       //  CPU个数
-    var ram: Int                    //  当前手机RAM值。单位 MB。
+    var android_sdk_int: Int = 0,               //  Android API Level
+    var runtime_max_memory: Int = 0,            //  JVM 最大可分配空间。单位MB。
+    var cpu: String = "other",                  //  CPU型号信息
+    var cpu_vendor: String = "other",           //  CPU厂商信息
+    var processor_count: Int = 0,               //  CPU个数
+    var ram: Int                                //  当前手机RAM值。单位 MB。
 )
 
 /**

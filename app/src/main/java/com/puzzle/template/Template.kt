@@ -1,16 +1,22 @@
 package com.puzzle.template
 
+/**
+ * 用于保存整个拼图模板的数据
+ */
 data class Template(
-    val imageCount: Int,
-    val totalHeight: Int,
-    val totalWidth: Int,
-    val templateThumbnail: String,
-    val templates: List<TemplateInfo>
+    val imageCount: Int = 0,                        // 该模板的图片数量
+    val totalHeight: Int = 0,                       // 该模板的总高度
+    val totalWidth: Int = 0,                        // 模板的总宽度
+    val templateThumbnail: String = "",             // 模板的缩略图路径
+    val templates: List<TemplateInfo> = emptyList() // 模板中每全部图片的位置信息
 )
 
+/**
+ * 用于保存单张拼图的位置信息
+ */
 data class TemplateInfo(
-    val left: Int,
-    val top: Int,
-    val right: Int,
-    val bottom: Int
+    val left: Int = 0,
+    val top: Int = 0,
+    val right: Int = 0,
+    val bottom: Int = 0
 )

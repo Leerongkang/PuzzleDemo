@@ -6,12 +6,18 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ImageView.ScaleType
+import com.puzzle.dp2px
 import com.puzzle.template.Template
 import com.puzzle.template.TemplateInfo
-import com.puzzle.dp2px
 
+/**
+ * 自定义的拼图ViewGroup
+ * 通过onLayout对内部的ImageView进行布局从而实现拼图
+ */
 class PuzzleLayout @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr) {
     companion object {
         const val FRAME_NONE = 0
@@ -20,6 +26,12 @@ class PuzzleLayout @JvmOverloads constructor(
         const val FRAME_LARGE = 15
     }
 
+    //默认的拼图模板
+    //    |————|
+    //    |    |
+    //    |————|
+    //    |    |
+    //    |————|
     var template = Template(
         4, 1024, 1024, "1001", listOf(
             TemplateInfo(0, 0, 1024, 512),
@@ -72,7 +84,7 @@ class PuzzleLayout @JvmOverloads constructor(
     }
 
     fun updateFrameSize(frame: Int) {
-        frameSize = frame.dp2px(context)
+        frameSize = frame.dp2px()
         requestLayout()
         invalidate()
     }

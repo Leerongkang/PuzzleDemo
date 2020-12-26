@@ -6,6 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.puzzle.R
 import kotlinx.android.synthetic.main.activity_success.*
 
+/**
+ * 拼图结果Activity
+ */
 class SuccessActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

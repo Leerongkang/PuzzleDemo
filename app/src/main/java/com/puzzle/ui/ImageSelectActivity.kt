@@ -9,8 +9,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.puzzle.R
 import com.permissionx.guolindev.PermissionX
+import com.puzzle.R
 import com.puzzle.adappter.ImageAdapter
 import com.puzzle.coroutine.XXMainScope
 import kotlinx.android.synthetic.main.activity_image_select.*
@@ -18,6 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * 图片选择Activity
+ */
 class ImageSelectActivity : AppCompatActivity() {
 
     private val selectImages = ArrayList<String>()
