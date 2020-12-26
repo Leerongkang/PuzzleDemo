@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.util.lruCache
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.puzzle.R
 import com.puzzle.coroutine.XXMainScope
 import kotlinx.coroutines.Dispatchers
@@ -25,13 +26,6 @@ class TemplateAdapter(
     var currentSelectPos = 0
     var lastSelectedPos = 0
 
-    private val cacheSize = (Runtime.getRuntime().maxMemory() / 8).toInt()
-    private val imageCache = lruCache<String, Bitmap>(
-        maxSize = cacheSize,
-        sizeOf = { _, bitmap ->
-            bitmap.byteCount
-        })
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TemplateViewHolder {
         return TemplateViewHolder(
             LayoutInflater.from(parent.context).inflate(R.layout.item_templte, parent, false)
@@ -46,10 +40,7 @@ class TemplateAdapter(
         } else {
             prefix + list[position] + context.getString(R.string.template_path_suffix)
         }
-        XXMainScope().launch {
-            val bitmap = getAssetsBitmap(path, context)
-            holder.image.setImageBitmap(bitmap)
-        }
+        Glide.with(holder.image.context).load("file:///android_asset/$path").into(holder.image)
         holder.rootView.setOnClickListener {
             onTemplateSelect(this, holder)
             lastSelectedPos = currentSelectPos
@@ -58,16 +49,6 @@ class TemplateAdapter(
 
     override fun getItemCount(): Int = list.size
 
-    private suspend fun getAssetsBitmap(path: String, context: Context) =
-        withContext(Dispatchers.IO) {
-            var bitmap = imageCache[path]
-            if (bitmap == null) {
-                val inputStream = context.assets.open(path, AssetManager.ACCESS_STREAMING)
-                bitmap = BitmapFactory.decodeStream(inputStream)
-                imageCache.put(path, bitmap)
-            }
-            bitmap
-        }
 }
 
 class TemplateViewHolder(val rootView: View) : RecyclerView.ViewHolder(rootView) {

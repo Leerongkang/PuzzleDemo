@@ -21,6 +21,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.puzzle.R
 import com.puzzle.template.Template
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity() {
     private fun initWithCoroutines() {
         XXMainScope().launch {
             loadTemplateData()
+            initViews()
             val bitmaps = decodeBitmap(images)
             puzzleLayout.template = allTemplates[0]
             puzzleLayout.initViews(bitmaps, allTemplates[0].imageCount)
@@ -77,7 +79,6 @@ class MainActivity : AppCompatActivity() {
                 resizePuzzleLayout()
                 puzzleViewInit = true
             }
-            initViews()
         }
     }
 
@@ -117,12 +118,17 @@ class MainActivity : AppCompatActivity() {
                 exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt() ?: 0
             val imageWidth = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt() ?: 0
             val scalingRatio = if (imageHeight > imageWidth) {
-                imageHeight / 1000
-            } else {
-                imageWidth / 1000
-            }
+                                        imageHeight / 1000
+                                    } else {
+                                        imageWidth / 1000
+                                    }
             op.inSampleSize = scalingRatio
             val decodeBitmap = BitmapFactory.decodeFile(it, op)
+//            val decodeBitmap: Bitmap = Glide.with(this@MainActivity)
+//                                            .asBitmap()
+//                                            .load("file://$it")
+//                                            .submit()
+//                                            .get()
             bitmaps.add(decodeBitmap)
         }
         bitmapList.clear()
