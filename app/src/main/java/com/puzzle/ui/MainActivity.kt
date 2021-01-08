@@ -16,14 +16,12 @@ import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.exifinterface.media.ExifInterface
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import com.puzzle.R
 import com.puzzle.adappter.TemplateAdapter
-import com.puzzle.coroutine.XXMainScope
 import com.puzzle.dp2px
 import com.puzzle.template.Template
 import com.puzzle.template.TemplateData
@@ -41,7 +39,7 @@ import kotlin.math.roundToInt
 /**
  * 拼图Activity
  */
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private val frameIconHeight = 40
     private var showTemplate = true
@@ -69,7 +67,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initWithCoroutines() {
-        XXMainScope().launch {
+        mainScope.launch {
             loadTemplateData()
             initViews()
             val bitmaps = decodeBitmap(images)
@@ -189,10 +187,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onTabSelected(tab: TabLayout.Tab) {
                     shouldUpdateTabLayout = false
                     val categoryPos = (tab.position)
-                    templateRecyclerViewLayoutManager.scrollToPositionWithOffset(
-                        fistTemplateInCategoryMap[categoryPos] ?: 0,
-                        0
-                    )
+                    templateGroup.templateRecyclerView.scrollToPosition(fistTemplateInCategoryMap[categoryPos] ?: 0)
                 }
 
                 override fun onTabUnselected(tab: TabLayout.Tab) {}
@@ -278,7 +273,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveBitmap(view: View, fileName: String) {
         val bitmap = view2bitmap(view)
-        XXMainScope().launch {
+        mainScope.launch {
             val savedUri = saveLocal(fileName, bitmap)
             if (!TextUtils.isEmpty(savedUri.toString())) {
                 startActivity(Intent(this@MainActivity, SuccessActivity::class.java).apply {

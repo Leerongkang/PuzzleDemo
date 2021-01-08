@@ -9,7 +9,7 @@ import kotlinx.android.synthetic.main.activity_success.*
 /**
  * 拼图结果Activity
  */
-class SuccessActivity : AppCompatActivity() {
+class SuccessActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -15,8 +15,7 @@ import com.puzzle.R
 class TemplateAdapter(
     var list: List<String>,
     val onTemplateSelect: (adapter: TemplateAdapter, holder: TemplateViewHolder) -> Unit
-) :
-    RecyclerView.Adapter<TemplateViewHolder>() {
+) : RecyclerView.Adapter<TemplateViewHolder>() {
 
     var currentSelectPos = 0
     var lastSelectedPos = 0

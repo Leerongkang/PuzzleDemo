@@ -3,12 +3,15 @@ package com.puzzle.ui.view
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.AttributeSet
+import android.util.Log
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ImageView.ScaleType
 import com.puzzle.dp2px
 import com.puzzle.template.Template
 import com.puzzle.template.TemplateInfo
+import kotlin.math.roundToInt
 
 /**
  * 自定义的拼图ViewGroup
@@ -38,9 +41,29 @@ class PuzzleLayout @JvmOverloads constructor(
             TemplateInfo(0, 512, 1024, 1024)
         )
     )
+    set(value) {
+        field = value
+        horizontalBorders.clear()
+        verticalBorders.clear()
+        for (info in value.templates) {
+            if (info.left != 0){
+                horizontalBorders.add((info.left * proportion).roundToInt())
+            }
+            if (info.right != value.totalWidth){
+                horizontalBorders.add((info.right * proportion).roundToInt())
+            }
+            if (info.top != 0) {
+                verticalBorders.add((info.top * proportion).roundToInt())
+            }
+            if (info.bottom != value.totalHeight) {
+                verticalBorders.add((info.bottom * proportion).roundToInt())
+            }
+        }
+    }
+    var proportion = 1.0
     private var frameSize = 0
-    var proportion = 0.0
-
+    private val verticalBorders = mutableListOf<Int>()
+    private val horizontalBorders = mutableListOf<Int>()
     init {
         layoutParams = LayoutParams(template.totalWidth, template.totalHeight)
     }
@@ -87,5 +110,22 @@ class PuzzleLayout @JvmOverloads constructor(
         frameSize = frame.dp2px()
         requestLayout()
         invalidate()
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_POINTER_DOWN -> Log.e("kkl","ACTION_POINTER_DOWN")
+            MotionEvent.ACTION_POINTER_UP -> Log.e("kkl","ACTION_POINTER_UP")
+            MotionEvent.ACTION_MOVE -> Log.e("kkl","ACTION_MOVE")
+            MotionEvent.ACTION_UP -> Log.e("kkl","ACTION_UP")
+            MotionEvent.ACTION_DOWN -> Log.e("kkl","ACTION_DOWN")
+            MotionEvent.ACTION_CANCEL -> Log.e("kkl","ACTION_CANCEL")
+        }
+        performClick()
+        return true
+    }
+
+    override fun performClick(): Boolean {
+        return super.performClick()
     }
 }

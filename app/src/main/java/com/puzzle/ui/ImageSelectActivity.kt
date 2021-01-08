@@ -6,13 +6,11 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.permissionx.guolindev.PermissionX
 import com.puzzle.R
 import com.puzzle.adappter.ImageAdapter
-import com.puzzle.coroutine.XXMainScope
 import kotlinx.android.synthetic.main.activity_image_select.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,7 +19,7 @@ import kotlinx.coroutines.withContext
 /**
  * 图片选择Activity
  */
-class ImageSelectActivity : AppCompatActivity() {
+class ImageSelectActivity : BaseActivity() {
 
     private val selectImages = ArrayList<String>()
     private val selectedAdapter = ImageAdapter(selectImages, true) { adapter, pos ->
@@ -37,21 +35,21 @@ class ImageSelectActivity : AppCompatActivity() {
         requestPermission()
     }
 
-    fun initAllImageRecyclerView(){
-        XXMainScope().launch {
+    private fun initAllImageRecyclerView(){
+        mainScope.launch {
             val localImages = getLocalImages()
             allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
                 if (selectImages.size < 9) {
                     selectImages.add(adapter.imageList[pos])
                     selectedAdapter.notifyItemInserted(selectImages.size - 1)
                     updateSelectNum()
+                    imageSelectedRecyclerView.scrollToPosition(selectImages.size - 1)
                 } else {
                     Toast.makeText(
                         this@ImageSelectActivity,
                         getString(R.string.select_limit_tips),
                         Toast.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
                 }
             }
             allImageRecyclerView.layoutManager = GridLayoutManager(this@ImageSelectActivity, 4)

@@ -19,8 +19,7 @@ class ImageAdapter(
     val imageList: List<String>,
     private val isSelected: Boolean = false,
     private val onSelected: (adapter: ImageAdapter, position: Int) -> Unit
-) :
-    RecyclerView.Adapter<ImageViewHolder>() {
+) : RecyclerView.Adapter<ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
         val resId: Int = if (isSelected) {
