@@ -3,9 +3,9 @@ package com.puzzle.ui
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -17,16 +17,18 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.exifinterface.media.ExifInterface
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.puzzle.R
 import com.puzzle.adappter.TemplateAdapter
 import com.puzzle.dp2px
 import com.puzzle.template.Template
 import com.puzzle.template.TemplateData
+import com.puzzle.ui.view.PuzzleImageView
 import com.puzzle.ui.view.PuzzleLayout
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.layout_image_replace.view.*
 import kotlinx.android.synthetic.main.layout_template.view.*
 import kotlinx.android.synthetic.main.layout_title.*
 import kotlinx.android.synthetic.main.layout_title.view.*
@@ -39,20 +41,26 @@ import kotlin.math.roundToInt
 /**
  * 拼图Activity
  */
+const val INTENT_EXTRA_REPLACE = "isReplaceImage"
+const val INTENT_EXTRA_REPLACE_DATA = "image_path"
+const val INTENT_REQUEST_CODE_REPLACE_IMAGE = 1
+
 class MainActivity : BaseActivity() {
 
     private val frameIconHeight = 40
+    private val rotateAngle = 90F
+    private var selectedImageIndex = -1
+    private var selectNum = 1
     private var showTemplate = true
     private var shouldUpdateTabLayout = false
-    private val templateCategoryNum = 6
-    private var selectNum = 1
+    private var puzzleViewInit = false
     private var currentFrameMode = 0 to ""
-    private var images = emptyList<String>()
+    private var images = mutableListOf<String>()
     private val template2CategoryMap = mutableMapOf<Int, Int>()
     private val fistTemplateInCategoryMap = mutableMapOf<Int, Int>()
     private val allTemplates = mutableListOf<Template>()
     private val bitmapList = mutableListOf<Bitmap>()
-    private var puzzleViewInit = false
+    private lateinit var selectedImageView: PuzzleImageView
     private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
     }
@@ -61,16 +69,31 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         images = intent.getStringArrayListExtra(getString(R.string.intent_extra_selected_images))
-            ?: emptyList()
+            .orEmpty().toMutableList()
         selectNum = images.size
         initWithCoroutines()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == INTENT_REQUEST_CODE_REPLACE_IMAGE) {
+            data?.getStringExtra(INTENT_EXTRA_REPLACE_DATA)
+                ?.let {
+                    mainScope.launch {
+                        images[selectedImageIndex] = it
+                        val changeBitmap = decodeBitmap(it)
+                        bitmapList[selectedImageIndex] = changeBitmap
+                        selectedImageView.setImageBitmap(changeBitmap)
+                    }
+                }
+        }
     }
 
     private fun initWithCoroutines() {
         mainScope.launch {
             loadTemplateData()
             initViews()
-            val bitmaps = decodeBitmap(images)
+            val bitmaps = decodeBitmaps(images)
             puzzleLayout.template = allTemplates[0]
             puzzleLayout.initViews(bitmaps, allTemplates[0].imageCount)
             puzzleContainer.post {
@@ -107,26 +130,15 @@ class MainActivity : BaseActivity() {
             FrameLayout.LayoutParams(finalWidth, finalHeight, Gravity.CENTER)
     }
 
-    private suspend fun decodeBitmap(path: List<String>) = withContext(Dispatchers.IO) {
+    private suspend fun decodeBitmaps(path: List<String>) = withContext(Dispatchers.IO) {
         val bitmaps = mutableListOf<Bitmap>()
-        val op = BitmapFactory.Options()
         path.forEach {
-            val exifInterface = ExifInterface(it)
-            val imageHeight =
-                exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt() ?: 0
-            val imageWidth = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt() ?: 0
-            val scalingRatio = if (imageHeight > imageWidth) {
-                imageHeight / 1000
-            } else {
-                imageWidth / 1000
-            }
-            op.inSampleSize = scalingRatio
-            val decodeBitmap = BitmapFactory.decodeFile(it, op)
-//            val decodeBitmap: Bitmap = Glide.with(this@MainActivity)
-//                                            .asBitmap()
-//                                            .load("file://$it")
-//                                            .submit()
-//                                            .get()
+            val decodeBitmap: Bitmap = Glide.with(this@MainActivity)
+                .asBitmap()
+                .override(1440)
+                .load("file://$it")
+                .submit()
+                .get()
             bitmaps.add(decodeBitmap)
         }
         bitmapList.clear()
@@ -135,10 +147,20 @@ class MainActivity : BaseActivity() {
         bitmaps
     }
 
+    private suspend fun decodeBitmap(path: String) = withContext(Dispatchers.IO) {
+        Glide.with(this@MainActivity)
+            .asBitmap()
+            .override(1000)
+            .load("file://$path")
+            .submit()
+            .get()
+    }
+
     private suspend fun initViews() {
         initTitleBar()
         initTemplateViewGroup()
         initBottomTabLayout()
+        initImageUpdateGroup()
     }
 
     private suspend fun initTemplateViewGroup() {
@@ -187,7 +209,9 @@ class MainActivity : BaseActivity() {
                 override fun onTabSelected(tab: TabLayout.Tab) {
                     shouldUpdateTabLayout = false
                     val categoryPos = (tab.position)
-                    templateGroup.templateRecyclerView.scrollToPosition(fistTemplateInCategoryMap[categoryPos] ?: 0)
+                    templateGroup.templateRecyclerView.smoothScrollToPosition(
+                        fistTemplateInCategoryMap[categoryPos] ?: 0
+                    )
                 }
 
                 override fun onTabUnselected(tab: TabLayout.Tab) {}
@@ -224,16 +248,17 @@ class MainActivity : BaseActivity() {
             if (shouldUpdateTabLayout) {
                 val lastPos =
                     templateRecyclerViewLayoutManager.findLastVisibleItemPosition()
-                val pos = if (lastPos == allTemplates.size - 1) {
-                    templateCategoryNum - 1
-                } else {
-                    val firstPos =
-                        templateRecyclerViewLayoutManager.findFirstVisibleItemPosition()
-                    template2CategoryMap[firstPos] ?: 0
+                val firstPos =
+                    templateRecyclerViewLayoutManager.findFirstVisibleItemPosition()
+                if (lastPos == allTemplates.size - 1) {
+                    templateGroup.templateTabLayout.setScrollPosition(
+                        templateGroup.templateTabLayout.tabCount - 1, 0F, false
+                    )
+                } else if (firstPos == 0) {
+                    templateGroup.templateTabLayout.setScrollPosition(
+                        firstPos, 0F, false
+                    )
                 }
-                templateGroup.templateTabLayout.setScrollPosition(
-                    pos, 0F, false
-                )
             }
             shouldUpdateTabLayout = true
         }
@@ -244,6 +269,7 @@ class MainActivity : BaseActivity() {
             finish()
         }
         titleBar.finishImageView.setOnClickListener {
+            puzzleLayout.clearAllImageViewSelectBorder()
             saveBitmap(puzzleLayout, System.currentTimeMillis().toString())
         }
     }
@@ -268,6 +294,80 @@ class MainActivity : BaseActivity() {
                     showTemplate = !showTemplate
                 }
             })
+        }
+    }
+
+    private fun initImageUpdateGroup() {
+        puzzleLayout.onImageClickListener = { index, view ->
+            if (index != selectedImageIndex) {
+                selectedImageView = view
+                selectedImageIndex = index
+                if (imageUpdateGroup.alpha == 0F) {
+                    imageUpdateGroup.closeImageUpdateImageView.performClick()
+                }
+            } else {
+                view.showBorder(false)
+                selectedImageIndex = -1
+                imageUpdateGroup.closeImageUpdateImageView.performClick()
+            }
+        }
+        imageUpdateGroup.closeClickImageView.setOnClickListener {
+            selectedImageView.performClick()
+        }
+        imageUpdateGroup.replaceImageView.setOnClickListener {
+            startActivityForResult(Intent(this, ImageSelectActivity::class.java).apply {
+                putExtra(INTENT_EXTRA_REPLACE, true)
+            }, INTENT_REQUEST_CODE_REPLACE_IMAGE)
+        }
+        imageUpdateGroup.rotateImageView.setOnClickListener {
+            val sourceBitmap = bitmapList[selectedImageIndex]
+            val matrix = Matrix()
+            matrix.postRotate(rotateAngle)
+            val rotateBitmap = Bitmap.createBitmap(
+                sourceBitmap,
+                0,
+                0,
+                sourceBitmap.width,
+                sourceBitmap.height,
+                matrix,
+                true
+            )
+            bitmapList[selectedImageIndex] = rotateBitmap
+            selectedImageView.setImageBitmap(rotateBitmap)
+        }
+        imageUpdateGroup.rotateHorizontalImageView.setOnClickListener {
+            val sourceBitmap = bitmapList[selectedImageIndex]
+            val matrix = Matrix()
+            matrix.setScale(-1F, 1F)
+            matrix.postTranslate(sourceBitmap.width.toFloat(), 0F)
+            val rotateBitmap = Bitmap.createBitmap(
+                sourceBitmap,
+                0,
+                0,
+                sourceBitmap.width,
+                sourceBitmap.height,
+                matrix,
+                true
+            )
+            bitmapList[selectedImageIndex] = rotateBitmap
+            selectedImageView.setImageBitmap(rotateBitmap)
+        }
+        imageUpdateGroup.rotateVerticalImageView.setOnClickListener {
+            val sourceBitmap = bitmapList[selectedImageIndex]
+            val matrix = Matrix()
+            matrix.setScale(1F, -1F)
+            matrix.postTranslate(0F, sourceBitmap.height.toFloat())
+            val rotateBitmap = Bitmap.createBitmap(
+                sourceBitmap,
+                0,
+                0,
+                sourceBitmap.width,
+                sourceBitmap.height,
+                matrix,
+                true
+            )
+            bitmapList[selectedImageIndex] = rotateBitmap
+            selectedImageView.setImageBitmap(rotateBitmap)
         }
     }
 

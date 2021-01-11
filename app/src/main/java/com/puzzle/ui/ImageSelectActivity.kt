@@ -18,9 +18,11 @@ import kotlinx.coroutines.withContext
 
 /**
  * 图片选择Activity
+ *
  */
 class ImageSelectActivity : BaseActivity() {
 
+    private var isReplaceImage = false
     private val selectImages = ArrayList<String>()
     private val selectedAdapter = ImageAdapter(selectImages, true) { adapter, pos ->
         selectImages.removeAt(pos)
@@ -32,24 +34,43 @@ class ImageSelectActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_select)
         initViews()
+        isReplaceImage = intent.getBooleanExtra(INTENT_EXTRA_REPLACE,false)
         requestPermission()
+    }
+
+    override fun onDestroy() {
+//        intent.putExtra(INTENT_EXTRA_REPLACE_DATA, "")
+//        setResult(INTENT_REQUEST_CODE_REPLACE_IMAGE, intent)
+        super.onDestroy()
     }
 
     private fun initAllImageRecyclerView(){
         mainScope.launch {
             val localImages = getLocalImages()
-            allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
-                if (selectImages.size < 9) {
-                    selectImages.add(adapter.imageList[pos])
-                    selectedAdapter.notifyItemInserted(selectImages.size - 1)
-                    updateSelectNum()
-                    imageSelectedRecyclerView.scrollToPosition(selectImages.size - 1)
-                } else {
-                    Toast.makeText(
-                        this@ImageSelectActivity,
-                        getString(R.string.select_limit_tips),
-                        Toast.LENGTH_SHORT
-                    ).show()
+            if (isReplaceImage) {
+                imageSelectedRecyclerView.visibility = View.GONE
+                tipsTextView.visibility = View.GONE
+                selectNumTextView.visibility = View.GONE
+                doneTextView.visibility = View.GONE
+                allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
+                    intent.putExtra(INTENT_EXTRA_REPLACE_DATA, adapter.imageList[pos])
+                    setResult(INTENT_REQUEST_CODE_REPLACE_IMAGE, intent)
+                    finish()
+                }
+            } else {
+                allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
+                    if (selectImages.size < 9) {
+                        selectImages.add(adapter.imageList[pos])
+                        selectedAdapter.notifyItemInserted(selectImages.size - 1)
+                        updateSelectNum()
+                        imageSelectedRecyclerView.scrollToPosition(selectImages.size - 1)
+                    } else {
+                        Toast.makeText(
+                            this@ImageSelectActivity,
+                            getString(R.string.select_limit_tips),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
             allImageRecyclerView.layoutManager = GridLayoutManager(this@ImageSelectActivity, 4)
