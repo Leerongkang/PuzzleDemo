@@ -33,19 +33,15 @@ class ImageSelectActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_select)
-        initViews()
         isReplaceImage = intent.getBooleanExtra(INTENT_EXTRA_REPLACE,false)
         requestPermission()
-    }
-
-    override fun onDestroy() {
-//        intent.putExtra(INTENT_EXTRA_REPLACE_DATA, "")
-//        setResult(INTENT_REQUEST_CODE_REPLACE_IMAGE, intent)
-        super.onDestroy()
+        initViews()
     }
 
     private fun initAllImageRecyclerView(){
         mainScope.launch {
+            selectLoadingAnimateView.playAnimation()
+            selectLoadingAnimateView.alpha = 1F
             val localImages = getLocalImages()
             if (isReplaceImage) {
                 imageSelectedRecyclerView.visibility = View.GONE
@@ -74,6 +70,7 @@ class ImageSelectActivity : BaseActivity() {
                 }
             }
             allImageRecyclerView.layoutManager = GridLayoutManager(this@ImageSelectActivity, 4)
+            selectLoadingAnimateView.alpha = 0F
         }
     }
 

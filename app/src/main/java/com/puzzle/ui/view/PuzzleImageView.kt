@@ -18,7 +18,7 @@ class PuzzleImageView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
 
-     var shouldShowBorder = false
+    var shouldShowBorder = false
     private val outBorderWidth = 0.dp2px()
     private val borderWidth = 5.dp2px()
     private val borderRect = Rect()

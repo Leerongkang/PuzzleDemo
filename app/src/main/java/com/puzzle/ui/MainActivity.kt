@@ -14,6 +14,7 @@ import android.provider.MediaStore
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
+import android.view.WindowInsets
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -80,17 +81,24 @@ class MainActivity : BaseActivity() {
             data?.getStringExtra(INTENT_EXTRA_REPLACE_DATA)
                 ?.let {
                     mainScope.launch {
+                        loadingAnimateView.alpha = 1F
+                        loadingAnimateView.playAnimation()
                         images[selectedImageIndex] = it
                         val changeBitmap = decodeBitmap(it)
                         bitmapList[selectedImageIndex] = changeBitmap
                         selectedImageView.setImageBitmap(changeBitmap)
+                        loadingAnimateView.pauseAnimation()
+                        loadingAnimateView.alpha = 0F
                     }
                 }
         }
     }
 
     private fun initWithCoroutines() {
+        loadingAnimateView.repeatCount = -1
         mainScope.launch {
+            loadingAnimateView.alpha = 1F
+            loadingAnimateView.playAnimation()
             loadTemplateData()
             initViews()
             val bitmaps = decodeBitmaps(images)
@@ -100,6 +108,8 @@ class MainActivity : BaseActivity() {
                 resizePuzzleLayout()
                 puzzleViewInit = true
             }
+            loadingAnimateView.pauseAnimation()
+            loadingAnimateView.alpha = 0F
         }
     }
 

@@ -3,7 +3,6 @@ package com.puzzle.ui.view
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.AttributeSet
-import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.widget.ImageView.ScaleType
 import com.puzzle.dp2px
