@@ -14,7 +14,6 @@ import android.provider.MediaStore
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
-import android.view.WindowInsets
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -48,19 +47,30 @@ const val INTENT_REQUEST_CODE_REPLACE_IMAGE = 1
 
 class MainActivity : BaseActivity() {
 
-    private val frameIconHeight = 40
+    // 边框图片尺寸
+    private val frameIconSize = 40
+    // 图片单词旋转的角度
     private val rotateAngle = 90F
+    // 单张图片替换时，该View的下标
     private var selectedImageIndex = -1
+    // 输入图片数量，使用Intent传入
     private var selectNum = 1
+    // 模板选择部分，是否隐藏标志位
     private var showTemplate = true
+    // 防止模板部分的 TabLayout 与 RecyclerView 联动时，滚动冲突
     private var shouldUpdateTabLayout = false
     private var puzzleViewInit = false
+    // 当前的边框模式，边框图标Id to 边框描述，用于界面显示
     private var currentFrameMode = 0 to ""
+    // 输入图片路径
     private var images = mutableListOf<String>()
+    // 输入图片解析后的Bitmap
+    private val bitmapList = mutableListOf<Bitmap>()
+    // 用于模板联动的数据结构
     private val template2CategoryMap = mutableMapOf<Int, Int>()
     private val fistTemplateInCategoryMap = mutableMapOf<Int, Int>()
     private val allTemplates = mutableListOf<Template>()
-    private val bitmapList = mutableListOf<Bitmap>()
+    // 替换图片的View
     private lateinit var selectedImageView: PuzzleImageView
     private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
@@ -69,8 +79,7 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        images = intent.getStringArrayListExtra(getString(R.string.intent_extra_selected_images))
-            .orEmpty().toMutableList()
+        images = intent.getStringArrayListExtra(getString(R.string.intent_extra_selected_images)).orEmpty().toMutableList()
         selectNum = images.size
         initWithCoroutines()
     }
@@ -82,11 +91,19 @@ class MainActivity : BaseActivity() {
                 ?.let {
                     mainScope.launch {
                         playLoadingAnimation()
+                        // 防止输入图片只有一张时，下标越界
+                        selectedImageIndex = if (selectedImageIndex > images.lastIndex){
+                                                0
+                                            } else {
+                                                selectedImageIndex
+                                            }
                         images[selectedImageIndex] = it
                         val changeBitmap = decodeBitmap(it)
                         bitmapList[selectedImageIndex] = changeBitmap
-                        selectedImageView.setImageBitmap(changeBitmap)
+//                        selectedImageView.setImageBitmap(changeBitmap)
+                        puzzleLayout.initViews(bitmapList,puzzleLayout.template.imageCount)
                         pauseLoadingAnimation()
+                        imageUpdateGroup.closeClickImageView.performClick()
                     }
                 }
         }
@@ -182,8 +199,8 @@ class MainActivity : BaseActivity() {
             setBounds(
                 0,
                 0,
-                frameIconHeight.dp2px(),
-                frameIconHeight.dp2px()
+                frameIconSize.dp2px(),
+                frameIconSize.dp2px()
             )
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
@@ -489,8 +506,8 @@ class MainActivity : BaseActivity() {
             setBounds(
                 0,
                 0,
-                frameIconHeight.dp2px(),
-                frameIconHeight.dp2px()
+                frameIconSize.dp2px(),
+                frameIconSize.dp2px()
             )
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)

@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+    throwable.printStackTrace()
 }
 /**
  * 可以用来做后台IO任务的协程Scope

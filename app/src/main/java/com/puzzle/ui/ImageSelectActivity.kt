@@ -18,7 +18,10 @@ import kotlinx.coroutines.withContext
 
 /**
  * 图片选择Activity
- *
+ * 通过接受Intent参数判断是单选还是多选，
+ * intent.getBooleanExtra(INTENT_EXTRA_REPLACE,false)
+ * true：  多选，可以选择1~9张
+ * false： 单选，只能选择一张
  */
 class ImageSelectActivity : BaseActivity() {
 
