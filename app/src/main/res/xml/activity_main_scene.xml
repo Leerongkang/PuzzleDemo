@@ -5,7 +5,7 @@
     <Transition
         motion:constraintSetEnd="@+id/end"
         motion:constraintSetStart="@id/start"
-        motion:duration="300"
+        motion:duration="200"
         motion:motionInterpolator="easeInOut">
         <OnClick motion:targetId="@id/showImageView" />
     </Transition>
@@ -109,7 +109,7 @@
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             android:translationY="0dp"
-            android:alpha="255" />
+            android:alpha="1" />
         <Constraint
             android:id="@+id/templateGroup"
             android:layout_width="0dp"
@@ -143,7 +143,7 @@
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             android:translationY="0dp"
-            android:alpha="255" />
+            android:alpha="1" />
         <Constraint
             android:id="@+id/templateGroup"
             android:layout_width="0dp"

@@ -7,14 +7,15 @@
     tools:context="com.puzzle.ui.ImageSelectActivity">
 
     <ImageView
-        android:id="@+id/backImageView"
+        android:id="@+id/exitImageView"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:contentDescription="@string/back"
+        android:background="?android:selectableItemBackground"
         android:padding="@dimen/title_image_padding"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_back" />
+        app:srcCompat="@drawable/ic_clear_black" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -24,9 +25,9 @@
         android:text="@string/all_images"
         android:textColor="#000000"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/backImageView"
-        app:layout_constraintStart_toEndOf="@+id/backImageView"
-        app:layout_constraintTop_toTopOf="@+id/backImageView" />
+        app:layout_constraintBottom_toBottomOf="@+id/exitImageView"
+        app:layout_constraintStart_toEndOf="@+id/exitImageView"
+        app:layout_constraintTop_toTopOf="@+id/exitImageView" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/allImageRecyclerView"
@@ -36,7 +37,7 @@
         app:layout_constraintBottom_toTopOf="@+id/tipsTextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/backImageView">
+        app:layout_constraintTop_toBottomOf="@+id/exitImageView">
 
     </androidx.recyclerview.widget.RecyclerView>
 

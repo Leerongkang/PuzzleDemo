@@ -81,14 +81,12 @@ class MainActivity : BaseActivity() {
             data?.getStringExtra(INTENT_EXTRA_REPLACE_DATA)
                 ?.let {
                     mainScope.launch {
-                        loadingAnimateView.alpha = 1F
-                        loadingAnimateView.playAnimation()
+                        playLoadingAnimation()
                         images[selectedImageIndex] = it
                         val changeBitmap = decodeBitmap(it)
                         bitmapList[selectedImageIndex] = changeBitmap
                         selectedImageView.setImageBitmap(changeBitmap)
-                        loadingAnimateView.pauseAnimation()
-                        loadingAnimateView.alpha = 0F
+                        pauseLoadingAnimation()
                     }
                 }
         }
@@ -97,8 +95,7 @@ class MainActivity : BaseActivity() {
     private fun initWithCoroutines() {
         loadingAnimateView.repeatCount = -1
         mainScope.launch {
-            loadingAnimateView.alpha = 1F
-            loadingAnimateView.playAnimation()
+            playLoadingAnimation()
             loadTemplateData()
             initViews()
             val bitmaps = decodeBitmaps(images)
@@ -108,10 +105,10 @@ class MainActivity : BaseActivity() {
                 resizePuzzleLayout()
                 puzzleViewInit = true
             }
-            loadingAnimateView.pauseAnimation()
-            loadingAnimateView.alpha = 0F
+            pauseLoadingAnimation()
         }
     }
+
 
     private suspend fun loadTemplateData() {
         template2CategoryMap.putAll(TemplateData.templateInCategory(selectNum, this))
@@ -382,8 +379,9 @@ class MainActivity : BaseActivity() {
     }
 
     private fun saveBitmap(view: View, fileName: String) {
-        val bitmap = view2bitmap(view)
         mainScope.launch {
+            playLoadingAnimation()
+            val bitmap = view2bitmap(view)
             val savedUri = saveLocal(fileName, bitmap)
             if (!TextUtils.isEmpty(savedUri.toString())) {
                 startActivity(Intent(this@MainActivity, SuccessActivity::class.java).apply {
@@ -396,7 +394,18 @@ class MainActivity : BaseActivity() {
                     Toast.LENGTH_LONG
                 ).show()
             }
+            pauseLoadingAnimation()
         }
+    }
+
+    private fun playLoadingAnimation() {
+        loadingAnimateView.alpha = 1F
+        loadingAnimateView.playAnimation()
+    }
+
+    private fun pauseLoadingAnimation() {
+        loadingAnimateView.pauseAnimation()
+        loadingAnimateView.alpha = 0F
     }
 
     private fun view2bitmap(view: View): Bitmap {

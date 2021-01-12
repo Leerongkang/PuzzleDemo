@@ -93,6 +93,9 @@ class ImageSelectActivity : BaseActivity() {
                 })
             }
         }
+        exitImageView.setOnClickListener {
+            finish()
+        }
     }
 
     private fun updateSelectNum() {
