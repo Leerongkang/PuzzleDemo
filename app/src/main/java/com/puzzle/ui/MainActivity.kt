@@ -55,8 +55,15 @@ class MainActivity : BaseActivity() {
     private var selectedImageIndex = -1
     // 输入图片数量，使用Intent传入
     private var selectNum = 1
+
     // 模板选择部分，是否隐藏标志位
-    private var showTemplate = true
+    private val showTemplateGroup: Boolean
+        get() = templateGroup?.alpha == 1F
+
+    // 图片调整部分，是否隐藏标志位
+    private val showUpdateGroup: Boolean
+        get() = imageUpdateGroup?.alpha == 1F
+
     // 防止模板部分的 TabLayout 与 RecyclerView 联动时，滚动冲突
     private var shouldUpdateTabLayout = false
     private var puzzleViewInit = false
@@ -103,7 +110,7 @@ class MainActivity : BaseActivity() {
 //                        selectedImageView.setImageBitmap(changeBitmap)
                         puzzleLayout.initViews(bitmapList,puzzleLayout.template.imageCount)
                         pauseLoadingAnimation()
-                        imageUpdateGroup.closeClickImageView.performClick()
+                        imageUpdateGroup.closeImageUpdateImageView.performClick()
                     }
                 }
         }
@@ -118,6 +125,14 @@ class MainActivity : BaseActivity() {
             val bitmaps = decodeBitmaps(images)
             puzzleLayout.template = allTemplates[0]
             puzzleLayout.initViews(bitmaps, allTemplates[0].imageCount)
+            puzzleLayout.onHideUtilsListener = {
+                if (showUpdateGroup) {
+                    imageUpdateGroup.closeClickImageView.performClick()
+                }
+                if (showTemplateGroup) {
+                    showImageView.performClick()
+                }
+            }
             puzzleContainer.post {
                 resizePuzzleLayout()
                 puzzleViewInit = true
@@ -306,27 +321,25 @@ class MainActivity : BaseActivity() {
             addTab(newTab().setText(context.getString(R.string.splice)))
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
-                    if (!showTemplate) {
+                    if (!showTemplateGroup) {
                         showImageView.performClick()
-                        showTemplate = !showTemplate
                     }
                 }
 
                 override fun onTabUnselected(tab: TabLayout.Tab) {}
                 override fun onTabReselected(tab: TabLayout.Tab) {
                     showImageView.performClick()
-                    showTemplate = !showTemplate
                 }
             })
         }
     }
 
     private fun initImageUpdateGroup() {
-        puzzleLayout.onImageClickListener = { index, view ->
-            if (index != selectedImageIndex) {
+        puzzleLayout.onImageClickListener = { viewIndex, view ->
+            if (viewIndex != selectedImageIndex) {
                 selectedImageView = view
-                selectedImageIndex = index
-                if (imageUpdateGroup.alpha == 0F) {
+                selectedImageIndex = viewIndex
+                if (!showUpdateGroup) {
                     imageUpdateGroup.closeImageUpdateImageView.performClick()
                 }
             } else {
@@ -344,7 +357,7 @@ class MainActivity : BaseActivity() {
             }, INTENT_REQUEST_CODE_REPLACE_IMAGE)
         }
         imageUpdateGroup.rotateImageView.setOnClickListener {
-            val sourceBitmap = bitmapList[selectedImageIndex]
+            val sourceBitmap = bitmapList[bitmapIndex]
             val matrix = Matrix()
             matrix.postRotate(rotateAngle)
             val rotateBitmap = Bitmap.createBitmap(
@@ -356,11 +369,11 @@ class MainActivity : BaseActivity() {
                 matrix,
                 true
             )
-            bitmapList[selectedImageIndex] = rotateBitmap
+            bitmapList[bitmapIndex] = rotateBitmap
             selectedImageView.setImageBitmap(rotateBitmap)
         }
         imageUpdateGroup.rotateHorizontalImageView.setOnClickListener {
-            val sourceBitmap = bitmapList[selectedImageIndex]
+            val sourceBitmap = bitmapList[bitmapIndex]
             val matrix = Matrix()
             matrix.setScale(-1F, 1F)
             matrix.postTranslate(sourceBitmap.width.toFloat(), 0F)
@@ -373,11 +386,11 @@ class MainActivity : BaseActivity() {
                 matrix,
                 true
             )
-            bitmapList[selectedImageIndex] = rotateBitmap
+            bitmapList[bitmapIndex] = rotateBitmap
             selectedImageView.setImageBitmap(rotateBitmap)
         }
         imageUpdateGroup.rotateVerticalImageView.setOnClickListener {
-            val sourceBitmap = bitmapList[selectedImageIndex]
+            val sourceBitmap = bitmapList[bitmapIndex]
             val matrix = Matrix()
             matrix.setScale(1F, -1F)
             matrix.postTranslate(0F, sourceBitmap.height.toFloat())
@@ -390,7 +403,7 @@ class MainActivity : BaseActivity() {
                 matrix,
                 true
             )
-            bitmapList[selectedImageIndex] = rotateBitmap
+            bitmapList[bitmapIndex] = rotateBitmap
             selectedImageView.setImageBitmap(rotateBitmap)
         }
     }
@@ -512,4 +525,11 @@ class MainActivity : BaseActivity() {
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
     }
+
+    private val bitmapIndex
+        get() = if (selectedImageIndex > bitmapList.lastIndex) {
+                    0
+                } else {
+                    selectedImageIndex
+                }
 }
