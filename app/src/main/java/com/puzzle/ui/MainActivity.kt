@@ -110,8 +110,8 @@ class MainActivity : BaseActivity() {
 //                        selectedImageView.setImageBitmap(changeBitmap)
                         puzzleLayout.initViews(bitmapList,puzzleLayout.template.imageCount)
                         pauseLoadingAnimation()
-                        imageUpdateGroup.closeImageUpdateImageView.performClick()
-                        selectedImageIndex = -1
+//                        imageUpdateGroup.closeImageUpdateImageView.performClick()
+//                        selectedImageIndex = -1
                     }
                 }
         }
@@ -129,6 +129,7 @@ class MainActivity : BaseActivity() {
             puzzleLayout.onHideUtilsListener = {
                 if (showUpdateGroup) {
                     imageUpdateGroup.closeClickImageView.performClick()
+                    selectedImageIndex = -1
                 }
                 if (showTemplateGroup) {
                     showImageView.performClick()

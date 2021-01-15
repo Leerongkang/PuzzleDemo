@@ -97,11 +97,11 @@ class PuzzleLayout @JvmOverloads constructor(
     private var newSelect = false
     private var isReplacing = false
 
-    //
+    // 当前
     private var isAdjusterBorder = false
     private var isLimitAdjusterBorder = false
     private var isMoveToStart = true
-    //
+    // 当前选中边框
     private var adjustBorder = BORDER_DEFAULT
 
     //动态调整线上（左）方的View
@@ -117,6 +117,16 @@ class PuzzleLayout @JvmOverloads constructor(
 
     // 拼图输入图片
     private val bitmapList = mutableListOf<Bitmap>()
+
+    // 对展示图片的View进行复用
+    private val puzzleImageViews = List(9) { index ->
+        PuzzleImageView(context).apply {
+            scaleType = ScaleType.CENTER_CROP
+            setOnClickListener {
+                puzzleImageViewOnClickListener(index, it as PuzzleImageView)
+            }
+        }
+    }
 
     // 默认的子View，不显示，用于逻辑判断
     private val defaultPuzzleImageView = PuzzleImageView(context)
@@ -599,18 +609,13 @@ class PuzzleLayout @JvmOverloads constructor(
         bitmapList.clear()
         bitmapList.addAll(bitmaps)
         for (i in 0 until imageCount) {
-            val view = PuzzleImageView(context).apply {
-                scaleType = ScaleType.CENTER_CROP
-                val index = if (i >= bitmapList.size) {
-                                        0
-                                  } else {
-                                        i
-                                  }
-                setImageBitmap(bitmapList[index])
-                setOnClickListener {
-                    puzzleImageViewOnClickListener(i, it as PuzzleImageView)
-                }
+            val view = puzzleImageViews[i]
+            val index = if (i >= bitmapList.size) {
+                0
+            } else {
+                i
             }
+            view.setImageBitmap(bitmapList[index])
             addView(view)
         }
     }
