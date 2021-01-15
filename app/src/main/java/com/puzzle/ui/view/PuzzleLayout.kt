@@ -247,7 +247,7 @@ class PuzzleLayout @JvmOverloads constructor(
                 // X轴或Y轴偏移量大于 moveThreshold 时才进行拦截
                 val exchange = offsetX > moveThreshold || offsetY > moveThreshold
                 // 动态调整左边界，拦截
-                val leftRange = exchangeSourceLeft..(exchangeSourceLeft + moveBorderThreshold)
+                val leftRange = (exchangeSourceLeft - moveBorderThreshold)..(exchangeSourceLeft + moveBorderThreshold)
                 if (exchange && exchangeSourceLeft != 0 && pressedX.roundToInt() in leftRange) {
                     for (i in 0 until childCount){
                         val view = getChildAt(i) as PuzzleImageView
@@ -266,7 +266,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     return true
                 }
                 // 动态调整右边界，拦截
-                val rightRange = (exchangeSourceRight - moveBorderThreshold)..exchangeSourceRight
+                val rightRange = (exchangeSourceRight - moveBorderThreshold)..(exchangeSourceRight + moveBorderThreshold)
                 if (exchange && exchangeSourceRight != (right - left) && pressedX.roundToInt() in rightRange) {
                     for (i in 0 until childCount){
                         val view = getChildAt(i) as PuzzleImageView
@@ -285,7 +285,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     return true
                 }
                 // 动态调整上边界，拦截
-                val topRange = exchangeSourceTop..(exchangeSourceTop + moveBorderThreshold)
+                val topRange = (exchangeSourceTop - moveBorderThreshold)..(exchangeSourceTop + moveBorderThreshold)
                 if (exchange && exchangeSourceTop != 0 && pressedY.roundToInt() in topRange) {
                     for (i in 0 until childCount){
                         val view = getChildAt(i) as PuzzleImageView
@@ -306,7 +306,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     return true
                 }
                 // 动态调整下边界，拦截
-                val bottomRange = (exchangeSourceBottom - moveBorderThreshold)..exchangeSourceBottom
+                val bottomRange = (exchangeSourceBottom - moveBorderThreshold)..(exchangeSourceBottom + moveBorderThreshold)
                 if (exchange && exchangeSourceBottom != (bottom - top) && pressedY.roundToInt() in bottomRange) {
                     for (i in 0 until childCount){
                         val view = getChildAt(i) as PuzzleImageView
@@ -406,6 +406,10 @@ class PuzzleLayout @JvmOverloads constructor(
                         }
                     }
                 } else {
+                    if (sourceImageView.alpha != 0.7F) {
+                        sourceImageView.alpha = 0.7F
+                        sourceImageView.scaleType = ScaleType.CENTER_INSIDE
+                    }
                     // 移动选中的View
                     sourceImageView.apply {
                         layout(

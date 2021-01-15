@@ -111,6 +111,7 @@ class MainActivity : BaseActivity() {
                         puzzleLayout.initViews(bitmapList,puzzleLayout.template.imageCount)
                         pauseLoadingAnimation()
                         imageUpdateGroup.closeImageUpdateImageView.performClick()
+                        selectedImageIndex = -1
                     }
                 }
         }
