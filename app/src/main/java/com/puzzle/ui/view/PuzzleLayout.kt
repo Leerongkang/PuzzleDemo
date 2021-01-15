@@ -91,7 +91,7 @@ class PuzzleLayout @JvmOverloads constructor(
     private val moveThreshold = 20.dp2px()
 
     // View大小调整拖动的阈值，拖动偏移量大于阈值才会拦截触摸事件
-    private val moveBorderThreshold = 10.dp2px()
+    private val moveBorderThreshold = 15.dp2px()
 
     // 开始一次新的触摸事件流
     private var newSelect = false
@@ -141,6 +141,9 @@ class PuzzleLayout @JvmOverloads constructor(
         layoutParams = LayoutParams(template.totalWidth, template.totalHeight)
     }
 
+    /**
+     * 绘制辅助线
+     */
     override fun onDrawForeground(canvas: Canvas) {
         super.onDrawForeground(canvas)
         // 拖动时， 绘制辅助线
@@ -176,6 +179,9 @@ class PuzzleLayout @JvmOverloads constructor(
         }
     }
 
+    /**
+     * 通过模板[template]，摆放PuzzleImageView到对应的位置
+     */
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val templateInfoList = template.templates
         for (i in templateInfoList.indices) {
@@ -248,7 +254,7 @@ class PuzzleLayout @JvmOverloads constructor(
                 val exchange = offsetX > moveThreshold || offsetY > moveThreshold
                 // 动态调整左边界，拦截
                 val leftRange = (exchangeSourceLeft - moveBorderThreshold)..(exchangeSourceLeft + moveBorderThreshold)
-                if (exchange && exchangeSourceLeft != 0 && pressedX.roundToInt() in leftRange) {
+                if (exchange && exchangeSourceLeft != frameSize && pressedX.roundToInt() in leftRange) {
                     for (i in 0 until childCount){
                         val view = getChildAt(i) as PuzzleImageView
                         if (exchangeSourceLeft == view.left){
@@ -267,7 +273,7 @@ class PuzzleLayout @JvmOverloads constructor(
                 }
                 // 动态调整右边界，拦截
                 val rightRange = (exchangeSourceRight - moveBorderThreshold)..(exchangeSourceRight + moveBorderThreshold)
-                if (exchange && exchangeSourceRight != (right - left) && pressedX.roundToInt() in rightRange) {
+                if (exchange && exchangeSourceRight != (width - frameSize) && pressedX.roundToInt() in rightRange) {
                     for (i in 0 until childCount){
                         val view = getChildAt(i) as PuzzleImageView
                         if (exchangeSourceRight == view.right){
@@ -286,7 +292,7 @@ class PuzzleLayout @JvmOverloads constructor(
                 }
                 // 动态调整上边界，拦截
                 val topRange = (exchangeSourceTop - moveBorderThreshold)..(exchangeSourceTop + moveBorderThreshold)
-                if (exchange && exchangeSourceTop != 0 && pressedY.roundToInt() in topRange) {
+                if (exchange && exchangeSourceTop != frameSize && pressedY.roundToInt() in topRange) {
                     for (i in 0 until childCount){
                         val view = getChildAt(i) as PuzzleImageView
                         // 边界下面的View
@@ -307,7 +313,7 @@ class PuzzleLayout @JvmOverloads constructor(
                 }
                 // 动态调整下边界，拦截
                 val bottomRange = (exchangeSourceBottom - moveBorderThreshold)..(exchangeSourceBottom + moveBorderThreshold)
-                if (exchange && exchangeSourceBottom != (bottom - top) && pressedY.roundToInt() in bottomRange) {
+                if (exchange && exchangeSourceBottom != (height - frameSize) && pressedY.roundToInt() in bottomRange) {
                     for (i in 0 until childCount){
                         val view = getChildAt(i) as PuzzleImageView
                         // 边界上面的View
@@ -409,6 +415,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     if (sourceImageView.alpha != 0.7F) {
                         sourceImageView.alpha = 0.7F
                         sourceImageView.scaleType = ScaleType.CENTER_INSIDE
+                        onHideUtilsListener()
                     }
                     // 移动选中的View
                     sourceImageView.apply {
