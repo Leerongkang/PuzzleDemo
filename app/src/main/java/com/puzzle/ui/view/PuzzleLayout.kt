@@ -360,7 +360,7 @@ class PuzzleLayout @JvmOverloads constructor(
         when (event.action) {
             MotionEvent.ACTION_MOVE -> {
                 if (isAdjusterBorder) {
-                    Log.e("kk", " $x = $y = $isAdjusterBorder")
+                    Log.e("kkl", "$lastMoveX -> $x ; $lastMoveY ->  $y = $isAdjusterBorder")
 //                    for (v in abovePuzzleImageViews){
 //                        v.showBorder(true)
 //                    }
@@ -449,33 +449,35 @@ class PuzzleLayout @JvmOverloads constructor(
                 if (isAdjusterBorder){
                     isAdjusterBorder = false
                     clearAllImageViewSelectBorder()
+
+                    // 重新生成新的模板，并替换当前模板
                     val infoList = mutableListOf<TemplateInfo>()
                     proportion = 1.0
                     for (i in 0 until childCount) {
                         val view = getChildAt(i)
-//                        val right = if (view.right != right - frameSize) {
-//                                               view.right
-//                                           } else {
-//                                               right
-//                                           }
-//                        val bottom = if (view.bottom != bottom - frameSize) {
-//                                               view.bottom
-//                                           } else {
-//                                               bottom
-//                                           }
+                        val templateRight = if (view.right != width - frameSize) {
+                                               view.right
+                                           } else {
+                                               width
+                                           }
+                        val templateBottom = if (view.bottom != height - frameSize) {
+                                               view.bottom
+                                           } else {
+                                               height
+                                           }
                         infoList.add(
                             TemplateInfo(
                                 view.left - frameSize,
                                 view.top - frameSize,
-                                view.right,
-                                view.bottom
+                                templateRight,
+                                templateBottom
                             )
                         )
                     }
                     template = Template(
                         template.imageCount,
-                        template.totalHeight,
-                        template.totalWidth,
+                        height,
+                        width,
                         template.templateThumbnail,
                         infoList
                     )
@@ -517,6 +519,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     for (view in abovePuzzleImageViews) {
                         val rectWith = view.width - offset
                         if(rectWith <= minPuzzleImageViewSize) {
+                            view.showBorder(true)
                             return true
                         }
                     }
@@ -524,6 +527,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     for (view in underPuzzleImageViews) {
                         val rectWith = view.width + offset
                         if(rectWith <= minPuzzleImageViewSize) {
+                            view.showBorder(true)
                             return true
                         }
                     }
@@ -534,6 +538,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     for (view in abovePuzzleImageViews) {
                         val rectHeight = view.height - offset
                         if(rectHeight <= minPuzzleImageViewSize) {
+                            view.showBorder(true)
                             return true
                         }
                     }
@@ -541,6 +546,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     for (view in underPuzzleImageViews) {
                         val rectHeight = view.height + offset
                         if(rectHeight <= minPuzzleImageViewSize) {
+                            view.showBorder(true)
                             return true
                         }
                     }
