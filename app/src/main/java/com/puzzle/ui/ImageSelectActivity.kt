@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
-import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.permissionx.guolindev.PermissionX
@@ -64,11 +63,7 @@ class ImageSelectActivity : BaseActivity() {
                         updateSelectNum()
                         imageSelectedRecyclerView.scrollToPosition(selectImages.size - 1)
                     } else {
-                        Toast.makeText(
-                            this@ImageSelectActivity,
-                            getString(R.string.select_limit_tips),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showToast(getString(R.string.select_limit_tips))
                     }
                 }
             }
@@ -149,11 +144,7 @@ class ImageSelectActivity : BaseActivity() {
             )
         }.request { allGranted, _, deniedList ->
             if (!allGranted) {
-                Toast.makeText(
-                    this,
-                    getString(R.string.denied_permissions, deniedList),
-                    Toast.LENGTH_SHORT
-                ).show()
+                showToast(getString(R.string.denied_permissions, deniedList))
             } else {
                 initAllImageRecyclerView()
             }

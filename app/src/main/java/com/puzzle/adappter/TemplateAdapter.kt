@@ -15,7 +15,7 @@ import com.puzzle.R
 class TemplateAdapter(
     var list: List<String>,
     val onTemplateSelect: (adapter: TemplateAdapter, holder: TemplateViewHolder) -> Unit
-) : RecyclerView.Adapter<TemplateViewHolder>() {
+) : RecyclerView.Adapter<TemplateViewHolder>(), View.OnClickListener{
 
     var currentSelectPos = 0
     var lastSelectedPos = 0
@@ -23,7 +23,10 @@ class TemplateAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TemplateViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val itemView = layoutInflater.inflate(R.layout.item_templte, parent, false)
-        return TemplateViewHolder(itemView)
+        val templateViewHolder = TemplateViewHolder(itemView).apply {
+            rootView.setOnClickListener(this@TemplateAdapter)
+        }
+        return templateViewHolder
     }
 
     override fun onBindViewHolder(holder: TemplateViewHolder, position: Int) {
@@ -35,13 +38,14 @@ class TemplateAdapter(
                                 "$prefix${list[position]}${context.getString(R.string.template_path_suffix)}"
                             }
         Glide.with(holder.imageView.context).load("file:///android_asset/$path").into(holder.imageView)
-        holder.rootView.setOnClickListener {
-            onTemplateSelect(this, holder)
-            lastSelectedPos = currentSelectPos
-        }
+        holder.rootView.tag = holder
     }
 
     override fun getItemCount(): Int = list.size
+    override fun onClick(v: View) {
+        onTemplateSelect(this, v.tag as TemplateViewHolder)
+        lastSelectedPos = currentSelectPos
+    }
 
 }
 /**

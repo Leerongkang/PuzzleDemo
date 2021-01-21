@@ -12,14 +12,14 @@ import com.puzzle.R
  * ImageSelectActivity中allImageRecyclerView 和 imageSelectedRecyclerView 的Adapter
  * 用于显示图片的缩略图
  *
- * @param isSelected    true  为allImageRecyclerView的Adapter
- *                      false 为imageSelectedRecyclerView的Adapter
+ * @param isSelected    false  为allImageRecyclerView的Adapter
+ *                      true 为imageSelectedRecyclerView的Adapter
  */
 class ImageAdapter(
     val imageList: List<String>,
     private val isSelected: Boolean = false,
     private val onSelected: (adapter: ImageAdapter, position: Int) -> Unit
-) : RecyclerView.Adapter<ImageViewHolder>() {
+) : RecyclerView.Adapter<ImageViewHolder>(), View.OnClickListener {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
         val resId: Int = if (isSelected) {
@@ -29,7 +29,10 @@ class ImageAdapter(
                          }
         val layoutInflater = LayoutInflater.from(parent.context)
         val itemView = layoutInflater.inflate(resId, parent, false)
-        return ImageViewHolder(itemView)
+        val viewHolder = ImageViewHolder(itemView).apply {
+            imageView.setOnClickListener(this@ImageAdapter)
+        }
+        return viewHolder
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
@@ -37,17 +40,19 @@ class ImageAdapter(
         Glide.with(holder.imageView.context)
              .load("file://${imageList[position]}")
              .into(holder.imageView)
-        holder.imageView.setOnClickListener {
-            onSelected(this, holder.layoutPosition)
-        }
+        holder.imageView.tag = holder
     }
 
     override fun getItemCount() = imageList.size
+    override fun onClick(v: View) {
+        val imageViewHolder = v.tag as ImageViewHolder
+        onSelected(this, imageViewHolder.layoutPosition)
+    }
 }
 
 /**
  * ImageAdapter对应的ViewHolder
  */
-class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+class ImageViewHolder(rootView: View) : RecyclerView.ViewHolder(rootView) {
     val imageView: ImageView = itemView.findViewById(R.id.itemImageView)
 }

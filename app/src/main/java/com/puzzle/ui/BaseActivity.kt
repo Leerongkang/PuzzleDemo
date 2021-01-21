@@ -1,21 +1,22 @@
 package com.puzzle.ui
 
-import android.os.Bundle
-import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.puzzle.PuzzleApplication
 import com.puzzle.coroutine.XXMainScope
 import kotlinx.coroutines.cancel
 
-open class BaseActivity: AppCompatActivity() {
+open class BaseActivity : AppCompatActivity() {
     protected val mainScope = XXMainScope()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-        super.onCreate(savedInstanceState)
-    }
+    private var toast: Toast = Toast.makeText(PuzzleApplication.appContext, "", Toast.LENGTH_SHORT)
 
     override fun onDestroy() {
         super.onDestroy()
         mainScope.cancel()
+    }
+
+    protected fun showToast(message: String) {
+        toast.setText(message)
+        toast.show()
     }
 }

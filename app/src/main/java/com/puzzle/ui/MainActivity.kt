@@ -15,7 +15,6 @@ import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -420,11 +419,7 @@ class MainActivity : BaseActivity() {
                     putExtra(getString(R.string.intent_extra_saved_uri), savedUri)
                 })
             } else {
-                Toast.makeText(
-                    this@MainActivity,
-                    getString(R.string.saved_failed),
-                    Toast.LENGTH_LONG
-                ).show()
+                showToast(getString(R.string.saved_failed))
             }
             pauseLoadingAnimation()
         }
