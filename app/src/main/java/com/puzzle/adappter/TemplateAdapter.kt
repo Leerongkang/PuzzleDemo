@@ -9,14 +9,21 @@ import com.bumptech.glide.Glide
 import com.puzzle.R
 
 /**
- * MainActivity中templateRecyclerView的Adapter
+ * [MainActivity] 中 [templateRecyclerView] 的 Adapter
  * 用于显示拼图模板缩略图
+ *
+ * @param templateList:     拼图模板缩略图的路径
+ *
+ * @param onTemplateSelectListener: 拼图模板点击事件
+ *                          [adapter] : 当前的 adapter, 用于更新 RecyclerView，如 notifyItemChanged
+ *                          [holder]  : 点击的 TemplateViewHolder，用于获取点击的下标
  */
 class TemplateAdapter(
-    var list: List<String>,
-    val onTemplateSelect: (adapter: TemplateAdapter, holder: TemplateViewHolder) -> Unit
-) : RecyclerView.Adapter<TemplateViewHolder>(), View.OnClickListener{
+    var templateList: List<String>,
+    val onTemplateSelectListener: OnTemplateSelectListener
+) : RecyclerView.Adapter<TemplateViewHolder>(), View.OnClickListener {
 
+    //  当前点击选中的模板 和 上次选中的模板，用于更新界面中的选中状态
     var currentSelectPos = 0
     var lastSelectedPos = 0
 
@@ -33,24 +40,27 @@ class TemplateAdapter(
         val context = holder.imageView.context
         val prefix = context.getString(R.string.template_path_prefix)
         val path: String = if (position == currentSelectPos) {
-                                "$prefix${list[position]}${context.getString(R.string.template_path_suffix_pressed)}"
+                                "$prefix${templateList[position]}${context.getString(R.string.template_path_suffix_pressed)}"
                             } else {
-                                "$prefix${list[position]}${context.getString(R.string.template_path_suffix)}"
+                                "$prefix${templateList[position]}${context.getString(R.string.template_path_suffix)}"
                             }
         Glide.with(holder.imageView.context).load("file:///android_asset/$path").into(holder.imageView)
-        holder.rootView.tag = holder
+        holder.rootView.tag = holder       // 通过 tag，绑定点击
     }
 
-    override fun getItemCount(): Int = list.size
+    override fun getItemCount(): Int = templateList.size
+
     override fun onClick(v: View) {
-        onTemplateSelect(this, v.tag as TemplateViewHolder)
-        lastSelectedPos = currentSelectPos
+        onTemplateSelectListener(this, v.tag as TemplateViewHolder)
+        lastSelectedPos = currentSelectPos      // 更新选中状态
     }
 
 }
 /**
- * TemplateAdapter对应的ViewHolder
+ * TemplateAdapter 对应的 ViewHolder
  */
 class TemplateViewHolder(val rootView: View) : RecyclerView.ViewHolder(rootView) {
     val imageView: ImageView = itemView.findViewById(R.id.templateItemImage)
 }
+
+typealias OnTemplateSelectListener = (adapter: TemplateAdapter, holder: TemplateViewHolder) -> Unit

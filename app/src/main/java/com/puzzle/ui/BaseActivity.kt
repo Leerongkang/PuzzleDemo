@@ -7,6 +7,7 @@ import com.puzzle.coroutine.XXMainScope
 import kotlinx.coroutines.cancel
 
 open class BaseActivity : AppCompatActivity() {
+
     protected val mainScope = XXMainScope()
     private var toast: Toast = Toast.makeText(PuzzleApplication.appContext, "", Toast.LENGTH_SHORT)
 

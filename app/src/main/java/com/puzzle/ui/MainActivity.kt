@@ -41,7 +41,7 @@ import kotlin.math.roundToInt
  * 拼图Activity
  */
 const val INTENT_EXTRA_REPLACE = "isReplaceImage"
-const val INTENT_EXTRA_REPLACE_DATA = "image_path"
+const val INTENT_EXTRA_DATA_REPLACE = "image_path"
 const val INTENT_REQUEST_CODE_REPLACE_IMAGE = 1
 
 class MainActivity : BaseActivity() {
@@ -81,6 +81,13 @@ class MainActivity : BaseActivity() {
     private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
     }
+    // 带修正的当前选中图片下标，防止 bitmapList 下标越界（当导入图片只有一张时，可能出现）
+    private val bitmapIndex
+        get() = if (selectedImageIndex > bitmapList.lastIndex) {
+            0
+        } else {
+            selectedImageIndex
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,10 +97,13 @@ class MainActivity : BaseActivity() {
         initWithCoroutines()
     }
 
+    /**
+     * 从[ImageSelectActivity]返回后，获取更换图片路径，并进行加载和替换
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == INTENT_REQUEST_CODE_REPLACE_IMAGE) {
-            data?.getStringExtra(INTENT_EXTRA_REPLACE_DATA)
+            data?.getStringExtra(INTENT_EXTRA_DATA_REPLACE)
                 ?.let {
                     mainScope.launch {
                         playLoadingAnimation()
@@ -116,13 +126,16 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    /**
+     * 开启协程，加载数据，并初始化界面
+     */
     private fun initWithCoroutines() {
         loadingAnimateView.repeatCount = -1
         mainScope.launch {
             playLoadingAnimation()
             loadTemplateData()
             initViews()
-            val bitmaps = decodeBitmaps(images)
+            val bitmaps = decodeBitmaps()
             puzzleLayout.template = allTemplates[0]
             puzzleLayout.initViews(bitmaps, allTemplates[0].imageCount)
             puzzleLayout.onHideUtilsListener = {
@@ -142,7 +155,9 @@ class MainActivity : BaseActivity() {
         }
     }
 
-
+    /**
+     * 加载输入图片数量为[selectNum]的模板数据
+     */
     private suspend fun loadTemplateData() {
         template2CategoryMap.putAll(TemplateData.templateInCategory(selectNum, this))
         fistTemplateInCategoryMap.putAll(TemplateData.templateCategoryFirst(selectNum, this))
@@ -170,9 +185,12 @@ class MainActivity : BaseActivity() {
             FrameLayout.LayoutParams(finalWidth, finalHeight, Gravity.CENTER)
     }
 
-    private suspend fun decodeBitmaps(path: List<String>) = withContext(Dispatchers.IO) {
+    /**
+     * 使用[Glide] 加载 [images] 中的图片路径，并添加到 [bitmapList] 中。
+     */
+    private suspend fun decodeBitmaps() = withContext(Dispatchers.IO) {
         val bitmaps = mutableListOf<Bitmap>()
-        path.forEach {
+        images.forEach {
             val decodeBitmap: Bitmap = Glide.with(this@MainActivity)
                 .asBitmap()
                 .override(1440)
@@ -187,6 +205,9 @@ class MainActivity : BaseActivity() {
         bitmaps
     }
 
+    /**
+     * 使用 [Glide] 加载单张图片
+     */
     private suspend fun decodeBitmap(path: String) = withContext(Dispatchers.IO) {
         Glide.with(this@MainActivity)
             .asBitmap()
@@ -425,16 +446,25 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    /**
+     * 播放加载动画
+     */
     private fun playLoadingAnimation() {
         loadingAnimateView.alpha = 1F
         loadingAnimateView.playAnimation()
     }
 
+    /**
+     * 取消加载动画
+     */
     private fun pauseLoadingAnimation() {
         loadingAnimateView.pauseAnimation()
         loadingAnimateView.alpha = 0F
     }
 
+    /**
+     * 将 [PuzzleLayout] 转换为 bitmap，用于图片保存
+     */
     private fun view2bitmap(view: View): Bitmap {
         val height = view.height
         val width = view.width
@@ -445,6 +475,11 @@ class MainActivity : BaseActivity() {
         return bitmap
     }
 
+    /**
+     * 将拼图保存到本地。
+     * Android Q 版本以上插入[MediaStore]后再保存，否则先保存到本地，再发送广播通知图库更新
+     *
+     */
     private suspend fun saveLocal(fileName: String, bitmap: Bitmap): Uri =
         withContext(Dispatchers.IO) {
             var imagePath: Uri = Uri.parse("")
@@ -488,6 +523,9 @@ class MainActivity : BaseActivity() {
             imagePath
         }
 
+    /**
+     * 边框模式的更新
+     */
     private fun updateFrameMode() {
         currentFrameMode = when (currentFrameMode.first) {
             R.drawable.meitu_puzzle__frame_none -> {
@@ -522,11 +560,4 @@ class MainActivity : BaseActivity() {
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
     }
-
-    private val bitmapIndex
-        get() = if (selectedImageIndex > bitmapList.lastIndex) {
-                    0
-                } else {
-                    selectedImageIndex
-                }
 }

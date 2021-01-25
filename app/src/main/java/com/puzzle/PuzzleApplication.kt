@@ -6,7 +6,8 @@ import android.content.Context
 /**
  * 拼图demo全局application
  */
-class PuzzleApplication:Application() {
+class PuzzleApplication : Application() {
+
     companion object {
         lateinit var appContext: Context
     }

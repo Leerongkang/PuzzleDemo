@@ -13,7 +13,7 @@ class SuccessActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_success)
-        val imagePath = intent.getParcelableExtra<Uri>(getString(R.string.intent_extra_saved_uri))
+        val imagePath: Uri? = intent.getParcelableExtra(getString(R.string.intent_extra_saved_uri))
         previewImageView.setImageURI(imagePath)
         backImageView.setOnClickListener {
             finish()

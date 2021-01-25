@@ -17,7 +17,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
- * 自定义的拼图ViewGroup
+ * 自定义的拼图ViewGroup，支持动态调整
  * 通过onLayout对内部的ImageView进行布局从而实现拼图
  */
 class PuzzleLayout @JvmOverloads constructor(
@@ -26,11 +26,13 @@ class PuzzleLayout @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr) {
     companion object {
+        // 拼图边框大小
         const val FRAME_NONE = 0
         const val FRAME_SMALL = 5
         const val FRAME_MEDIUM = 10
         const val FRAME_LARGE = 15
 
+        // 调整大小时，选择的边框
         private const val BORDER_DEFAULT = -1
         private const val BORDER_TOP = 0
         private const val BORDER_BOTTOM = 1
@@ -197,13 +199,13 @@ class PuzzleLayout @JvmOverloads constructor(
             val viewLeft = (info.left * proportion).roundToInt() + frameSize
             val viewTop = (info.top * proportion).roundToInt() + frameSize
             val vr = (info.right * proportion).roundToInt()
-            val viewRight = if (right - vr < 2 || info.right == template.totalWidth) {
+            val viewRight = if (right < vr || info.right == template.totalWidth) {
                                     vr - frameSize
                                 } else {
                                     vr
                                 }
             val vb = (info.bottom * proportion).roundToInt()
-            val viewBottom = if (bottom - vb < 2  || info.bottom == template.totalHeight ) {
+            val viewBottom = if (bottom < vb || info.bottom == template.totalHeight ) {
                                     vb - frameSize
                                 } else {
                                     vb
@@ -217,6 +219,13 @@ class PuzzleLayout @JvmOverloads constructor(
         }
     }
 
+    /**
+     * 对触摸事件进行拦截
+     * [MotionEvent.ACTION_DOWN]  不拦截，记录按下时的坐标，并查找点击的子 View
+     * [MotionEvent.ACTION_MOVE]  满足以下条件之一，仅进行拦截，返回 [true]
+     *                              1. 大小调整： 触摸点在边框附近[moveBorderThreshold]，且移动偏移量大于 [moveThreshold]
+     *                              2. 图片交换： 当前坐标移动到其他子 View 内
+     */
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
         val x = event.x.toInt()
         val y = event.y.toInt()
@@ -341,7 +350,7 @@ class PuzzleLayout @JvmOverloads constructor(
                 // 拦截拖动更换图片
                 val inOther = x !in (exchangeSourceLeft..exchangeSourceRight) ||
                         y !in (exchangeSourceTop..exchangeSourceBottom)
-                if (exchange && inOther && newSelect) {
+                if (inOther && newSelect) {
                     sourceImageView.alpha = 0.7F
                     sourceImageView.scaleType = ScaleType.CENTER_INSIDE
                     newSelect = false
@@ -349,17 +358,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     adjustBorder = BORDER_DEFAULT
                     onHideUtilsListener()
                 }
-                return exchange && inOther
-            }
-            MotionEvent.ACTION_UP -> {
-                val offsetX = abs(pressedX - event.x)
-                val offsetY = abs(pressedY - event.y)
-                pressedX = 0F
-                pressedY = 0F
-                lastMoveX = 0F
-                lastMoveY = 0F
-                adjustBorder = BORDER_DEFAULT
-                return offsetX > moveThreshold || offsetY > moveThreshold
+                return inOther
             }
         }
         adjustBorder = BORDER_DEFAULT
@@ -514,10 +513,13 @@ class PuzzleLayout @JvmOverloads constructor(
                 exchangeBitmaps()
             }
         }
-        super.onTouchEvent(event.apply {
-            action = MotionEvent.ACTION_CANCEL
-        })
         return true
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        oneThirdWidth = w / 3F
+        oneThirdHeight = h / 3F
     }
 
     /**
@@ -576,12 +578,6 @@ class PuzzleLayout @JvmOverloads constructor(
         return false
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        oneThirdWidth = w / 3F
-        oneThirdHeight = h / 3F
-    }
-
     /**
      * 交换两个View中的图片
      */
@@ -603,6 +599,11 @@ class PuzzleLayout @JvmOverloads constructor(
         destinationIndex = -1
     }
 
+    /**
+     * 根据模板中的图片数量，将相应的 View ，加入 Layout 中并设置对应图片
+     * @param bitmaps    输入图片解析后的 bitmap
+     * @param imageCount 当前拼图模板需要的图片数量，若 [imageCount] > [bitmaps.size] 则选择第一张图片
+     */
     fun initViews(bitmaps: List<Bitmap>, imageCount: Int) {
         removeAllViews()
         bitmapList.clear()
@@ -619,12 +620,20 @@ class PuzzleLayout @JvmOverloads constructor(
         }
     }
 
+    /**
+     * 添加边框效果
+     * @param frame [FRAME_NONE] : 无边框; [FRAME_SMALL] : 小边框;
+     *              [FRAME_MEDIUM] : 中边框; [FRAME_LARGE] : 大边框
+     */
     fun updateFrameSize(frame: Int) {
         frameSize = frame.dp2px()
         requestLayout()
         invalidate()
     }
 
+    /**
+     * 清空所有子View的选中标记
+     */
     fun clearAllImageViewSelectBorder() {
         for (i in 0..childCount) {
             val view = getChildAt(i)

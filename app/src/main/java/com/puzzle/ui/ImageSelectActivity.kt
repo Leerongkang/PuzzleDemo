@@ -51,7 +51,7 @@ class ImageSelectActivity : BaseActivity() {
                 selectNumTextView.visibility = View.GONE
                 doneTextView.visibility = View.GONE
                 allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
-                    intent.putExtra(INTENT_EXTRA_REPLACE_DATA, adapter.imageList[pos])
+                    intent.putExtra(INTENT_EXTRA_DATA_REPLACE, adapter.imageList[pos])
                     setResult(INTENT_REQUEST_CODE_REPLACE_IMAGE, intent)
                     finish()
                 }
@@ -110,6 +110,9 @@ class ImageSelectActivity : BaseActivity() {
         }
     }
 
+    /**
+     * 使用协程，通过 [contentResolver] 获取手机本地图片
+     */
     private suspend fun getLocalImages(): List<String> = withContext(Dispatchers.IO) {
         val images = mutableListOf<String>()
         val imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -130,6 +133,9 @@ class ImageSelectActivity : BaseActivity() {
         images
     }
 
+    /**
+     * 使用 [PermissionX] 获取存储权限
+     */
     private fun requestPermission() {
         PermissionX.init(this).permissions(
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
