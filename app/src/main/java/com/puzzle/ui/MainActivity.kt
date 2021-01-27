@@ -3,10 +3,9 @@ package com.puzzle.ui
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import androidx.exifinterface.media.ExifInterface
+import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -16,69 +15,150 @@ import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
-import com.lrk.puzzle.demo.R
-import com.puzzle.Template
-import com.puzzle.TemplateData
+import com.puzzle.R
 import com.puzzle.adappter.TemplateAdapter
-import com.puzzle.coroutine.XXMainScope
 import com.puzzle.dp2px
+import com.puzzle.template.Template
+import com.puzzle.template.TemplateData
+import com.puzzle.ui.view.PuzzleImageView
 import com.puzzle.ui.view.PuzzleLayout
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.layout_image_replace.view.*
 import kotlinx.android.synthetic.main.layout_template.view.*
 import kotlinx.android.synthetic.main.layout_title.*
 import kotlinx.android.synthetic.main.layout_title.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import kotlin.math.roundToInt
 
+/**
+ * 拼图Activity
+ */
+const val INTENT_EXTRA_REPLACE = "isReplaceImage"
+const val INTENT_EXTRA_DATA_REPLACE = "image_path"
+const val INTENT_REQUEST_CODE_REPLACE_IMAGE = 1
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
-    private val frameIconHeight = 40
-    private var showTemplate = true
-    private var shouldUpdateTabLayout = false
-    private val templateCategoryNum = 6
+    // 边框图片尺寸
+    private val frameIconSize = 40
+    // 图片单词旋转的角度
+    private val rotateAngle = 90F
+    // 单张图片替换时，该View的下标
+    private var selectedImageIndex = -1
+    // 输入图片数量，使用Intent传入
     private var selectNum = 1
+
+    // 模板选择部分，是否隐藏标志位
+    private val showTemplateGroup: Boolean
+        get() = templateGroup?.alpha == 1F
+
+    // 图片调整部分，是否隐藏标志位
+    private val showUpdateGroup: Boolean
+        get() = imageUpdateGroup?.alpha == 1F
+
+    // 防止模板部分的 TabLayout 与 RecyclerView 联动时，滚动冲突
+    private var shouldUpdateTabLayout = false
+    private var puzzleViewInit = false
+    // 当前的边框模式，边框图标Id to 边框描述，用于界面显示
     private var currentFrameMode = 0 to ""
-    private var images = emptyList<String>()
+    // 输入图片路径
+    private var images = mutableListOf<String>()
+    // 输入图片解析后的Bitmap
+    private val bitmapList = mutableListOf<Bitmap>()
+    // 用于模板联动的数据结构
     private val template2CategoryMap = mutableMapOf<Int, Int>()
     private val fistTemplateInCategoryMap = mutableMapOf<Int, Int>()
     private val allTemplates = mutableListOf<Template>()
-    private val bitmapList = mutableListOf<Bitmap>()
-    private var puzzleViewInit = false
+    // 替换图片的View
+    private lateinit var selectedImageView: PuzzleImageView
     private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
     }
+    // 带修正的当前选中图片下标，防止 bitmapList 下标越界（当导入图片只有一张时，可能出现）
+    private val bitmapIndex
+        get() = if (selectedImageIndex > bitmapList.lastIndex) {
+            0
+        } else {
+            selectedImageIndex
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        images = intent.getStringArrayListExtra(getString(R.string.intent_extra_selected_images))
-            ?: emptyList()
+        images = intent.getStringArrayListExtra(getString(R.string.intent_extra_selected_images)).orEmpty().toMutableList()
         selectNum = images.size
         initWithCoroutines()
     }
 
+    /**
+     * 从[ImageSelectActivity]返回后，获取更换图片路径，并进行加载和替换
+     */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == INTENT_REQUEST_CODE_REPLACE_IMAGE) {
+            data?.getStringExtra(INTENT_EXTRA_DATA_REPLACE)
+                ?.let {
+                    mainScope.launch {
+                        playLoadingAnimation()
+                        // 防止输入图片只有一张时，下标越界
+                        selectedImageIndex = if (selectedImageIndex > images.lastIndex){
+                                                0
+                                            } else {
+                                                selectedImageIndex
+                                            }
+                        images[selectedImageIndex] = it
+                        val changeBitmap = decodeBitmap(it)
+                        bitmapList[selectedImageIndex] = changeBitmap
+//                        selectedImageView.setImageBitmap(changeBitmap)
+                        puzzleLayout.initViews(bitmapList,puzzleLayout.template.imageCount)
+                        pauseLoadingAnimation()
+                        selectedImageView.tag = true
+//                        imageUpdateGroup.closeImageUpdateImageView.performClick()
+//                        selectedImageIndex = -1
+                    }
+                }
+        }
+    }
+
+    /**
+     * 开启协程，加载数据，并初始化界面
+     */
     private fun initWithCoroutines() {
-        XXMainScope().launch {
+        loadingAnimateView.repeatCount = -1
+        mainScope.launch {
+            playLoadingAnimation()
             loadTemplateData()
-            val bitmaps = decodeBitmap(images)
+            initViews()
+            val bitmaps = decodeBitmaps()
             puzzleLayout.template = allTemplates[0]
             puzzleLayout.initViews(bitmaps, allTemplates[0].imageCount)
+            puzzleLayout.onHideUtilsListener = {
+                if (showUpdateGroup) {
+                    imageUpdateGroup.closeClickImageView.performClick()
+                    selectedImageIndex = -1
+                }
+                if (showTemplateGroup) {
+                    showImageView.performClick()
+                }
+            }
             puzzleContainer.post {
                 resizePuzzleLayout()
                 puzzleViewInit = true
             }
-            initViews()
+            pauseLoadingAnimation()
         }
     }
 
+    /**
+     * 加载输入图片数量为[selectNum]的模板数据
+     */
     private suspend fun loadTemplateData() {
         template2CategoryMap.putAll(TemplateData.templateInCategory(selectNum, this))
         fistTemplateInCategoryMap.putAll(TemplateData.templateCategoryFirst(selectNum, this))
@@ -106,32 +186,43 @@ class MainActivity : AppCompatActivity() {
             FrameLayout.LayoutParams(finalWidth, finalHeight, Gravity.CENTER)
     }
 
-    private suspend fun decodeBitmap(path: List<String>) = withContext(Dispatchers.IO) {
+    /**
+     * 使用[Glide] 加载 [images] 中的图片路径，并添加到 [bitmapList] 中。
+     */
+    private suspend fun decodeBitmaps() = withContext(Dispatchers.IO) {
         val bitmaps = mutableListOf<Bitmap>()
-        val op = BitmapFactory.Options()
-        path.forEach {
-            val exifInterface = ExifInterface(it)
-            val imageHeight =
-                exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt() ?: 0
-            val imageWidth = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt() ?: 0
-            val scalingRatio = if (imageHeight > imageWidth) {
-                imageHeight / 1000
-            } else {
-                imageWidth / 1000
-            }
-            op.inSampleSize = scalingRatio
-            val decodeBitmap = BitmapFactory.decodeFile(it, op)
+        images.forEach {
+            val decodeBitmap: Bitmap = Glide.with(this@MainActivity)
+                .asBitmap()
+                .override(1440)
+                .load("file://$it")
+                .submit()
+                .get()
             bitmaps.add(decodeBitmap)
         }
         bitmapList.clear()
         bitmapList.addAll(bitmaps)
+//        PuzzleQualityManager.puzzleQuality.metric.input_suc = PuzzleMetric.
         bitmaps
+    }
+
+    /**
+     * 使用 [Glide] 加载单张图片
+     */
+    private suspend fun decodeBitmap(path: String) = withContext(Dispatchers.IO) {
+        Glide.with(this@MainActivity)
+            .asBitmap()
+            .override(1000)
+            .load("file://$path")
+            .submit()
+            .get()
     }
 
     private suspend fun initViews() {
         initTitleBar()
         initTemplateViewGroup()
         initBottomTabLayout()
+        initImageUpdateGroup()
     }
 
     private suspend fun initTemplateViewGroup() {
@@ -146,8 +237,8 @@ class MainActivity : AppCompatActivity() {
             setBounds(
                 0,
                 0,
-                frameIconHeight.dp2px(this@MainActivity),
-                frameIconHeight.dp2px(this@MainActivity)
+                frameIconSize.dp2px(),
+                frameIconSize.dp2px()
             )
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
@@ -180,9 +271,8 @@ class MainActivity : AppCompatActivity() {
                 override fun onTabSelected(tab: TabLayout.Tab) {
                     shouldUpdateTabLayout = false
                     val categoryPos = (tab.position)
-                    templateRecyclerViewLayoutManager.scrollToPositionWithOffset(
-                        fistTemplateInCategoryMap[categoryPos] ?: 0,
-                        0
+                    templateGroup.templateRecyclerView.smoothScrollToPosition(
+                        fistTemplateInCategoryMap[categoryPos] ?: 0
                     )
                 }
 
@@ -196,39 +286,41 @@ class MainActivity : AppCompatActivity() {
         templateGroup.templateRecyclerView.adapter = TemplateAdapter(
             TemplateData.allTemplateThumbnailPathWithNum(selectNum, this)
         ) { adapter, holder ->
-            if (puzzleViewInit) {
-                templateGroup.templateTabLayout.setScrollPosition(
-                    template2CategoryMap[holder.adapterPosition] ?: 0,
-                    0f,
-                    false
-                )
-                adapter.currentSelectPos = holder.adapterPosition
-                adapter.notifyItemChanged(adapter.currentSelectPos)
-                adapter.notifyItemChanged(adapter.lastSelectedPos)
-                puzzleLayout.template = allTemplates[holder.adapterPosition]
-                puzzleLayout.initViews(
-                    bitmapList,
-                    allTemplates[holder.adapterPosition].imageCount
-                )
-                resizePuzzleLayout()
-                puzzleLayout.requestLayout()
+            if (!puzzleViewInit) {
+                return@TemplateAdapter
             }
+            templateGroup.templateTabLayout.setScrollPosition(
+                template2CategoryMap[holder.adapterPosition] ?: 0,
+                0f,
+                false
+            )
+            adapter.currentSelectPos = holder.adapterPosition
+            adapter.notifyItemChanged(adapter.currentSelectPos)
+            adapter.notifyItemChanged(adapter.lastSelectedPos)
+            puzzleLayout.template = allTemplates[holder.adapterPosition]
+            puzzleLayout.initViews(
+                bitmapList,
+                allTemplates[holder.adapterPosition].imageCount
+            )
+            resizePuzzleLayout()
+            puzzleLayout.requestLayout()
         }
         templateGroup.templateRecyclerView.layoutManager = templateRecyclerViewLayoutManager
         templateGroup.templateRecyclerView.setOnScrollChangeListener { _, _, _, _, _ ->
             if (shouldUpdateTabLayout) {
                 val lastPos =
                     templateRecyclerViewLayoutManager.findLastVisibleItemPosition()
-                val pos = if (lastPos == allTemplates.size - 1) {
-                    templateCategoryNum - 1
-                } else {
-                    val firstPos =
-                        templateRecyclerViewLayoutManager.findFirstVisibleItemPosition()
-                    template2CategoryMap[firstPos] ?: 0
+                val firstPos =
+                    templateRecyclerViewLayoutManager.findFirstVisibleItemPosition()
+                if (lastPos == allTemplates.size - 1) {
+                    templateGroup.templateTabLayout.setScrollPosition(
+                        templateGroup.templateTabLayout.tabCount - 1, 0F, false
+                    )
+                } else if (firstPos == 0) {
+                    templateGroup.templateTabLayout.setScrollPosition(
+                        firstPos, 0F, false
+                    )
                 }
-                templateGroup.templateTabLayout.setScrollPosition(
-                    pos, 0F, false
-                )
             }
             shouldUpdateTabLayout = true
         }
@@ -239,6 +331,7 @@ class MainActivity : AppCompatActivity() {
             finish()
         }
         titleBar.finishImageView.setOnClickListener {
+            puzzleLayout.clearAllImageViewSelectBorder()
             saveBitmap(puzzleLayout, System.currentTimeMillis().toString())
         }
     }
@@ -251,39 +344,131 @@ class MainActivity : AppCompatActivity() {
             addTab(newTab().setText(context.getString(R.string.splice)))
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
-                    if (!showTemplate) {
+                    if (!showTemplateGroup) {
                         showImageView.performClick()
-                        showTemplate = !showTemplate
                     }
                 }
 
                 override fun onTabUnselected(tab: TabLayout.Tab) {}
                 override fun onTabReselected(tab: TabLayout.Tab) {
                     showImageView.performClick()
-                    showTemplate = !showTemplate
                 }
             })
         }
     }
 
+    private fun initImageUpdateGroup() {
+        puzzleLayout.onImageClickListener = { viewIndex, view ->
+            if (viewIndex != selectedImageIndex) {
+                selectedImageView = view
+                selectedImageIndex = viewIndex
+                if (!showUpdateGroup) {
+                    imageUpdateGroup.closeImageUpdateImageView.performClick()
+                }
+            } else {
+                view.showBorder(false)
+                selectedImageIndex = -1
+                imageUpdateGroup.closeImageUpdateImageView.performClick()
+            }
+        }
+        imageUpdateGroup.closeClickImageView.setOnClickListener {
+            selectedImageView.performClick()
+        }
+        imageUpdateGroup.replaceImageView.setOnClickListener {
+            startActivityForResult(Intent(this, ImageSelectActivity::class.java).apply {
+                putExtra(INTENT_EXTRA_REPLACE, true)
+            }, INTENT_REQUEST_CODE_REPLACE_IMAGE)
+        }
+        imageUpdateGroup.rotateImageView.setOnClickListener {
+            val sourceBitmap = bitmapList[bitmapIndex]
+            val matrix = Matrix()
+            matrix.postRotate(rotateAngle)
+            val rotateBitmap = Bitmap.createBitmap(
+                sourceBitmap,
+                0,
+                0,
+                sourceBitmap.width,
+                sourceBitmap.height,
+                matrix,
+                true
+            )
+            bitmapList[bitmapIndex] = rotateBitmap
+            selectedImageView.setImageBitmap(rotateBitmap)
+            selectedImageView.fixTransformation()
+        }
+        imageUpdateGroup.rotateHorizontalImageView.setOnClickListener {
+            val sourceBitmap = bitmapList[bitmapIndex]
+            val matrix = Matrix()
+            matrix.setScale(-1F, 1F)
+            matrix.postTranslate(sourceBitmap.width.toFloat(), 0F)
+            val rotateBitmap = Bitmap.createBitmap(
+                sourceBitmap,
+                0,
+                0,
+                sourceBitmap.width,
+                sourceBitmap.height,
+                matrix,
+                true
+            )
+            bitmapList[bitmapIndex] = rotateBitmap
+            selectedImageView.setImageBitmap(rotateBitmap)
+            selectedImageView.fixTransformation()
+        }
+        imageUpdateGroup.rotateVerticalImageView.setOnClickListener {
+            val sourceBitmap = bitmapList[bitmapIndex]
+            val matrix = Matrix()
+            matrix.setScale(1F, -1F)
+            matrix.postTranslate(0F, sourceBitmap.height.toFloat())
+            val rotateBitmap = Bitmap.createBitmap(
+                sourceBitmap,
+                0,
+                0,
+                sourceBitmap.width,
+                sourceBitmap.height,
+                matrix,
+                true
+            )
+            bitmapList[bitmapIndex] = rotateBitmap
+            selectedImageView.setImageBitmap(rotateBitmap)
+            selectedImageView.fixTransformation()
+        }
+    }
+
     private fun saveBitmap(view: View, fileName: String) {
-        val bitmap = view2bitmap(view)
-        XXMainScope().launch {
+        mainScope.launch {
+            playLoadingAnimation()
+            val bitmap = view2bitmap(view)
             val savedUri = saveLocal(fileName, bitmap)
             if (!TextUtils.isEmpty(savedUri.toString())) {
                 startActivity(Intent(this@MainActivity, SuccessActivity::class.java).apply {
                     putExtra(getString(R.string.intent_extra_saved_uri), savedUri)
                 })
             } else {
-                Toast.makeText(
-                    this@MainActivity,
-                    getString(R.string.saved_failed),
-                    Toast.LENGTH_LONG
-                ).show()
+                showToast(getString(R.string.saved_failed))
             }
+            pauseLoadingAnimation()
         }
     }
 
+    /**
+     * 播放加载动画
+     */
+    private fun playLoadingAnimation() {
+        loadingAnimateView.alpha = 1F
+        loadingAnimateView.playAnimation()
+    }
+
+    /**
+     * 取消加载动画
+     */
+    private fun pauseLoadingAnimation() {
+        loadingAnimateView.pauseAnimation()
+        loadingAnimateView.alpha = 0F
+    }
+
+    /**
+     * 将 [PuzzleLayout] 转换为 bitmap，用于图片保存
+     */
     private fun view2bitmap(view: View): Bitmap {
         val height = view.height
         val width = view.width
@@ -294,43 +479,57 @@ class MainActivity : AppCompatActivity() {
         return bitmap
     }
 
+    /**
+     * 将拼图保存到本地。
+     * Android Q 版本以上插入[MediaStore]后再保存，否则先保存到本地，再发送广播通知图库更新
+     *
+     */
     private suspend fun saveLocal(fileName: String, bitmap: Bitmap): Uri =
         withContext(Dispatchers.IO) {
             var imagePath: Uri = Uri.parse("")
             try {
-                val contentValues = ContentValues()
-                contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val contentValues = ContentValues()
+                    contentValues.put(
+                        MediaStore.Images.Media.DISPLAY_NAME,
+                        fileName
+                    )
                     contentValues.put(
                         MediaStore.Images.Media.RELATIVE_PATH,
                         getString(R.string.dcim)
                     )
-                } else {
                     contentValues.put(
-                        MediaStore.Images.Media.DATA,
-                        Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_PICTURES
-                        ).path
+                        MediaStore.Images.Media.MIME_TYPE,
+                        getString(R.string.mime_type_jpeg)
                     )
-                }
-                contentValues.put(
-                    MediaStore.Images.Media.MIME_TYPE,
-                    getString(R.string.mime_type_jpeg)
-                )
-                val uri = contentResolver.insert(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    contentValues
-                )
-                if (uri != null) {
-                    val outputStream = contentResolver.openOutputStream(uri)
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-                    imagePath = uri
+                    val uri = contentResolver.insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentValues
+                    )
+                    if (uri != null) {
+                        val outputStream = contentResolver.openOutputStream(uri)
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                        imagePath = uri
+                    }
+                } else {
+                    val dir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DCIM
+                    )
+                    val imageFile = File(dir, "$fileName.jpg")
+                    val outputStream = imageFile.outputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    imagePath = Uri.parse(imageFile.path)
+                    sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, imagePath))
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
             }
             imagePath
         }
 
+    /**
+     * 边框模式的更新
+     */
     private fun updateFrameMode() {
         currentFrameMode = when (currentFrameMode.first) {
             R.drawable.meitu_puzzle__frame_none -> {
@@ -359,8 +558,8 @@ class MainActivity : AppCompatActivity() {
             setBounds(
                 0,
                 0,
-                frameIconHeight.dp2px(this@MainActivity),
-                frameIconHeight.dp2px(this@MainActivity)
+                frameIconSize.dp2px(),
+                frameIconSize.dp2px()
             )
         }
         templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)

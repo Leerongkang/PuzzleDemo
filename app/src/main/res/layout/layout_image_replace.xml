@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/closeImageUpdateImageView"
+        android:layout_width="35dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="10dp"
+        android:padding="2dp"
+        android:background="@drawable/close_image_bg"
+        android:contentDescription="@string/close"
+        app:layout_constraintBottom_toTopOf="@id/imageChangeGroup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_clear_black" />
+
+    <ImageView
+        android:id="@+id/closeClickImageView"
+        android:layout_width="35dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="10dp"
+        android:padding="2dp"
+        android:background="@drawable/close_image_bg"
+        android:contentDescription="@string/close"
+        app:layout_constraintBottom_toTopOf="@id/imageChangeGroup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_clear_black" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:background="@color/white"
+        android:id="@+id/imageChangeGroup"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/replaceImageView"
+            android:layout_width="60dp"
+            android:layout_height="100dp"
+            android:contentDescription="@string/replace_image_view"
+            android:padding="15dp"
+            android:src="@drawable/ic_image"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/rotateImageView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/rotateImageView"
+            android:layout_width="60dp"
+            android:layout_height="100dp"
+            android:contentDescription="@string/replace_image_view"
+            android:padding="15dp"
+            android:src="@drawable/ic_rotate"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/rotateHorizontalImageView"
+            app:layout_constraintStart_toEndOf="@id/replaceImageView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/rotateHorizontalImageView"
+            android:layout_width="60dp"
+            android:layout_height="100dp"
+            android:contentDescription="@string/replace_image_view"
+            android:padding="15dp"
+            android:src="@drawable/ic_h_rotate"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/rotateVerticalImageView"
+            app:layout_constraintStart_toEndOf="@id/rotateImageView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/rotateVerticalImageView"
+            android:layout_width="60dp"
+            android:layout_height="100dp"
+            android:contentDescription="@string/replace_image_view"
+            android:padding="15dp"
+            android:src="@drawable/ic_v_rotate"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/rotateHorizontalImageView"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

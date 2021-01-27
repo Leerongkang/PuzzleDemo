@@ -1,82 +1,67 @@
 package com.puzzle.adappter
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import androidx.exifinterface.media.ExifInterface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.core.util.lruCache
 import androidx.recyclerview.widget.RecyclerView
-import com.lrk.puzzle.demo.R
-import com.puzzle.coroutine.XXMainScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.bumptech.glide.Glide
+import com.puzzle.R
 
+/**
+ * [ImageSelectActivity] 中 [allImageRecyclerView] 和 [imageSelectedRecyclerView] 的Adapter
+ * 用于显示带待选择图片的缩略图
+ *
+ * @param imageList     导入图片路径的列表
+ *
+ * @param isSelected    false  为allImageRecyclerView的Adapter
+ *                      true 为imageSelectedRecyclerView的Adapter
+ *
+ * @param onSelected    图片点击事件
+ *                      [adapter] :  当前的 adapter, 用于更新 RecyclerView，如 notifyItemRemoved
+ *                      [position]:  当前点击的下标，使用 [ImageViewHolder.layoutPosition]
+ */
 class ImageAdapter(
     val imageList: List<String>,
     private val isSelected: Boolean = false,
-    private val onSelected: (adapter: ImageAdapter, position: Int) -> Unit
-) :
-    RecyclerView.Adapter<ImageViewHolder>() {
-    private val op = BitmapFactory.Options()
-    private val bitmapSize = 200
-    private val cacheSize = (Runtime.getRuntime().maxMemory() / 4).toInt()
-    private val imageCache = lruCache<String, Bitmap>(
-        maxSize = cacheSize,
-        sizeOf = { _, bitmap ->
-            bitmap.byteCount
-        })
+    private val onSelected: OnImageSelectedListener
+) : RecyclerView.Adapter<ImageViewHolder>(), View.OnClickListener {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-        val resId = if (isSelected) {
-            R.layout.item_image_selected
-        } else {
-            R.layout.item_image
+        val resId: Int = if (isSelected) {
+                             R.layout.item_image_selected       // 选中图片
+                         } else {
+                             R.layout.item_image                // 待选择图片
+                         }
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val itemView = layoutInflater.inflate(resId, parent, false)
+        val viewHolder = ImageViewHolder(itemView).apply {
+            imageView.setOnClickListener(this@ImageAdapter)
         }
-        return ImageViewHolder(
-            LayoutInflater.from(parent.context).inflate(resId, parent, false)
-        )
+        return viewHolder
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         holder.imageView.setImageResource(R.color.white)
-        XXMainScope().launch {
-            val bitmap = getBitmap(imageList[position])
-            holder.imageView.setImageBitmap(bitmap)
-        }
-        holder.imageView.setOnClickListener {
-            onSelected(this, holder.layoutPosition)
-        }
-    }
-
-    private suspend fun getBitmap(path: String): Bitmap {
-        var bitmap = imageCache[path]
-        if (bitmap == null) {
-            bitmap = compressedBitmap(path)
-            imageCache.put(path, bitmap)
-        }
-        return bitmap
-    }
-
-    private suspend fun compressedBitmap(path: String): Bitmap = withContext(Dispatchers.IO) {
-        val exifInterface = ExifInterface(path)
-        val imageHeight = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)?.toInt() ?: 0
-        val imageWidth = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)?.toInt() ?: 0
-        val scalingRatio = if (imageHeight > imageWidth) {
-            imageHeight / bitmapSize
-        } else {
-            imageWidth / bitmapSize
-        }
-        op.inSampleSize = scalingRatio
-        BitmapFactory.decodeFile(path, op)
+        Glide.with(holder.imageView.context)
+             .load("file://${imageList[position]}")
+             .into(holder.imageView)
+        holder.imageView.tag = holder       // 通过 tag，绑定点击
     }
 
     override fun getItemCount() = imageList.size
+
+    override fun onClick(v: View) {
+        val imageViewHolder = v.tag as ImageViewHolder
+        onSelected(this, imageViewHolder.layoutPosition)
+    }
 }
 
-class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    val imageView = itemView.findViewById<ImageView>(R.id.ItemImageView)
+/**
+ * ImageAdapter 对应的 ViewHolder
+ */
+class ImageViewHolder(rootView: View) : RecyclerView.ViewHolder(rootView) {
+    val imageView: ImageView = itemView.findViewById(R.id.itemImageView)
 }
+
+typealias OnImageSelectedListener = (adapter: ImageAdapter, position: Int) -> Unit

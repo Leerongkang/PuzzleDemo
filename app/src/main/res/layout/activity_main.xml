@@ -33,13 +33,13 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:layout_marginBottom="32dp"
-            android:background="@color/main" />
+            android:background="@color/white" />
     </FrameLayout>
 
     <ImageView
         android:id="@+id/closeImageView"
         android:layout_width="35dp"
-        android:layout_height="15dp"
+        android:layout_height="18dp"
         android:layout_marginEnd="10dp"
         android:background="@drawable/close_image_bg"
         android:contentDescription="@string/close"
@@ -87,5 +87,25 @@
         app:tabRippleColor="@color/disabled"
         app:tabSelectedTextColor="@color/main"
         app:tabTextColor="@color/black" />
+
+    <include
+        android:id="@+id/imageUpdateGroup"
+        layout="@layout/layout_image_replace"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="invisible"/>
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/loadingAnimateView"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:lottie_rawRes="@raw/loading_loop_round"/>
 
 </androidx.constraintlayout.motion.widget.MotionLayout>
