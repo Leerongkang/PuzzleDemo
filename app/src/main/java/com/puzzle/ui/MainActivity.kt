@@ -119,6 +119,7 @@ class MainActivity : BaseActivity() {
 //                        selectedImageView.setImageBitmap(changeBitmap)
                         puzzleLayout.initViews(bitmapList,puzzleLayout.template.imageCount)
                         pauseLoadingAnimation()
+                        selectedImageView.tag = true
 //                        imageUpdateGroup.closeImageUpdateImageView.performClick()
 //                        selectedImageIndex = -1
                     }
@@ -393,6 +394,7 @@ class MainActivity : BaseActivity() {
             )
             bitmapList[bitmapIndex] = rotateBitmap
             selectedImageView.setImageBitmap(rotateBitmap)
+            selectedImageView.fixTransformation()
         }
         imageUpdateGroup.rotateHorizontalImageView.setOnClickListener {
             val sourceBitmap = bitmapList[bitmapIndex]
@@ -410,6 +412,7 @@ class MainActivity : BaseActivity() {
             )
             bitmapList[bitmapIndex] = rotateBitmap
             selectedImageView.setImageBitmap(rotateBitmap)
+            selectedImageView.fixTransformation()
         }
         imageUpdateGroup.rotateVerticalImageView.setOnClickListener {
             val sourceBitmap = bitmapList[bitmapIndex]
@@ -427,6 +430,7 @@ class MainActivity : BaseActivity() {
             )
             bitmapList[bitmapIndex] = rotateBitmap
             selectedImageView.setImageBitmap(rotateBitmap)
+            selectedImageView.fixTransformation()
         }
     }
 

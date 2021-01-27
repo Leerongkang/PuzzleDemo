@@ -40,6 +40,27 @@ class PuzzleLayout @JvmOverloads constructor(
         private const val BORDER_RIGHT = 3
     }
 
+    // 开始一次新的触摸事件流
+    private var newSelect = false
+
+    // 是否绘制辅助线
+    private var showGuildLine = false
+
+    // 缩放操作开始（第二个手指按下）
+    private var isScaling = false
+
+    // 缩放操作结束（第二个手指抬起）
+    private var isScaled = false
+
+    // 正在调整大小
+    private var isAdjusterBorder = false
+
+    // 大小是否到达阈值，需要禁用调整
+    private var isLimitAdjusterBorder = false
+
+    // 当前手势是否向上（左）滑动
+    private var isMoveToStart = true
+
     //默认的拼图模板
     //     ____
     //    |    |
@@ -51,9 +72,6 @@ class PuzzleLayout @JvmOverloads constructor(
             TemplateInfo(0, 512, 1024, 1024)
         )
     )
-
-    // 拼图模板的缩放比例
-    var proportion = 0.0
 
     // 边框大小
     private var frameSize = 0
@@ -90,16 +108,14 @@ class PuzzleLayout @JvmOverloads constructor(
     private val moveThreshold = 0.dp2px()
 
     // View大小调整拖动的阈值，拖动偏移量大于阈值才会拦截触摸事件
-    private val moveBorderThreshold = 15.dp2px()
+    private val moveBorderThreshold = 20.dp2px()
 
-    // 开始一次新的触摸事件流
-    private var newSelect = false
-    private var isReplacing = false
+    // 动态调整时，图片宽高最小限制
+    private val minPuzzleImageViewSize = 60.dp2px()
 
-    // 当前
-    private var isAdjusterBorder = false
-    private var isLimitAdjusterBorder = false
-    private var isMoveToStart = true
+    // 拼图模板的缩放比例
+    var proportion = 0.0
+
     // 当前选中边框
     private var adjustBorder = BORDER_DEFAULT
 
@@ -111,35 +127,42 @@ class PuzzleLayout @JvmOverloads constructor(
     private val underPuzzleImageViews = mutableListOf<PuzzleImageView>()
     private val underPuzzleImageViewsRect = mutableListOf<Rect>()
 
-    // 动态调整时，图片宽高最小限制
-    private val minPuzzleImageViewSize = 60.dp2px()
-
     // 拼图输入图片
     private val bitmapList = mutableListOf<Bitmap>()
 
-    // 对展示图片的View进行复用
+    // 默认的子 View，不显示，用于逻辑判断
+    private val defaultPuzzleImageView = PuzzleImageView(context)
+
+    // 拖动的子 View
+    private var sourceImageView: PuzzleImageView = defaultPuzzleImageView
+
+    // 被替换的子 View
+    private var destinationImageView: PuzzleImageView = defaultPuzzleImageView
+
+    // 监听，用于拖动时，隐藏工具栏
+    var onHideUtilsListener: OnHideUtilsListener = {}
+
+    // 对外部提供，监听点击子 View 的点击，用于显示工具栏
+    var onImageClickListener: OnImageClickListener = { _, _ -> }
+
+    // 用于监听点击子 View 的点击，用于响应绘制选中框，
+    private val puzzleImageViewOnClickListener: OnImageClickListener = { index, view ->
+        clearAllImageViewSelectBorder()
+        view.showBorder(true)
+        onImageClickListener(index, view)
+    }
+
+    // 初始化展示图片的子 View，并绑定点击事件
     private val puzzleImageViews = List(9) { index ->
         PuzzleImageView(context).apply {
-            scaleType = ScaleType.CENTER_CROP
+            scaleType = ScaleType.MATRIX
             setOnClickListener {
                 puzzleImageViewOnClickListener(index, it as PuzzleImageView)
             }
         }
     }
 
-    // 默认的子View，不显示，用于逻辑判断
-    private val defaultPuzzleImageView = PuzzleImageView(context)
-    private var sourceImageView: PuzzleImageView = defaultPuzzleImageView
-    private var destinationImageView: PuzzleImageView = defaultPuzzleImageView
-
-    //监听
-    var onHideUtilsListener: OnHideUtilsListener = {}
-    var onImageClickListener: OnImageClickListener = { _, _ -> }
-    private val puzzleImageViewOnClickListener: OnImageClickListener = { index, view ->
-        clearAllImageViewSelectBorder()
-        view.showBorder(true)
-        onImageClickListener(index, view)
-    }
+    // 辅助线画笔
     private val guideLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = context.getColor(R.color.disabled)
         style = Paint.Style.STROKE
@@ -156,7 +179,7 @@ class PuzzleLayout @JvmOverloads constructor(
     override fun onDrawForeground(canvas: Canvas) {
         super.onDrawForeground(canvas)
         // 拖动时， 绘制辅助线
-        if (isReplacing) {
+        if (showGuildLine) {
             canvas.drawLine(
                 oneThirdWidth,
                 0F,
@@ -193,29 +216,30 @@ class PuzzleLayout @JvmOverloads constructor(
      */
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val templateInfoList = template.templates
-        for (i in templateInfoList.indices) {
-            val imageView = getChildAt(i)
+        for (i in 0 until  childCount) {
+            val imageView = getChildAt(i) as PuzzleImageView
             val info = templateInfoList[i]
             val viewLeft = (info.left * proportion).roundToInt() + frameSize
             val viewTop = (info.top * proportion).roundToInt() + frameSize
             val vr = (info.right * proportion).roundToInt()
             val viewRight = if (right < vr || info.right == template.totalWidth) {
-                                    vr - frameSize
-                                } else {
-                                    vr
-                                }
+                                vr - frameSize
+                            } else {
+                                vr
+                            }
             val vb = (info.bottom * proportion).roundToInt()
             val viewBottom = if (bottom < vb || info.bottom == template.totalHeight ) {
-                                    vb - frameSize
-                                } else {
-                                    vb
-                                }
-            imageView?.layout(
-                viewLeft,
-                viewTop,
-                viewRight,
-                viewBottom
-            )
+                                vb - frameSize
+                            } else {
+                                vb
+                            }
+            imageView.layout(viewLeft, viewTop, viewRight, viewBottom)
+            val isUpdate = imageView.tag as Boolean
+            // 更换图片后，自适应缩放并居中
+            if (isUpdate) {
+                imageView.centerCrop()
+                imageView.tag = false
+            }
         }
     }
 
@@ -229,7 +253,7 @@ class PuzzleLayout @JvmOverloads constructor(
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
         val x = event.x.toInt()
         val y = event.y.toInt()
-        when (event.action) {
+        when (event.actionMasked) {
             // 按下时 记录坐标，不拦截事件
             MotionEvent.ACTION_DOWN -> {
                 pressedX = event.x
@@ -245,6 +269,7 @@ class PuzzleLayout @JvmOverloads constructor(
                     if (y in view.top..view.bottom && x in view.left..view.right) {
                         sourceIndex = i
                         sourceImageView = view as PuzzleImageView
+                        // 使当前选中 view，置于顶层
                         sourceImageView.z = (zIndex++).toFloat()
                         exchangeSourceLeft = sourceImageView.left
                         exchangeSourceRight = sourceImageView.right
@@ -261,6 +286,9 @@ class PuzzleLayout @JvmOverloads constructor(
                 return false
             }
             MotionEvent.ACTION_MOVE -> {
+                if (isScaling) {
+                    return false
+                }
                 val offsetX = abs(pressedX - event.x)
                 val offsetY = abs(pressedY - event.y)
                 lastMoveX = event.x
@@ -270,37 +298,40 @@ class PuzzleLayout @JvmOverloads constructor(
                 // 动态调整左边界，拦截
                 val leftRange = (exchangeSourceLeft - moveBorderThreshold)..(exchangeSourceLeft + moveBorderThreshold)
                 if (exchange && exchangeSourceLeft != frameSize && pressedX.roundToInt() in leftRange) {
-                    for (i in 0 until childCount){
+                    for (i in 0 until childCount) {
                         val view = getChildAt(i) as PuzzleImageView
-                        if (exchangeSourceLeft == view.left){
+                        if (exchangeSourceLeft == view.left) {
                             underPuzzleImageViews.add(view)
-                            underPuzzleImageViewsRect.add(Rect(view.left,view.top,view.right,view.bottom))
+                            underPuzzleImageViewsRect.add(Rect(view.left, view.top, view.right, view.bottom))
                         }
-                        if (exchangeSourceLeft == view.right + frameSize){
+                        if (exchangeSourceLeft == view.right + frameSize) {
                             abovePuzzleImageViews.add(view)
-                            abovePuzzleImageViewsRect.add(Rect(view.left,view.top,view.right,view.bottom))
+                            abovePuzzleImageViewsRect.add(Rect(view.left, view.top, view.right, view.bottom))
                         }
                     }
                     isAdjusterBorder = true
+                    showGuildLine = true
                     adjustBorder = BORDER_LEFT
                     onHideUtilsListener()
                     return true
                 }
                 // 动态调整右边界，拦截
-                val rightRange = (exchangeSourceRight - moveBorderThreshold)..(exchangeSourceRight + moveBorderThreshold)
+                val rightRange =
+                    (exchangeSourceRight - moveBorderThreshold)..(exchangeSourceRight + moveBorderThreshold)
                 if (exchange && exchangeSourceRight != (width - frameSize) && pressedX.roundToInt() in rightRange) {
-                    for (i in 0 until childCount){
+                    for (i in 0 until childCount) {
                         val view = getChildAt(i) as PuzzleImageView
-                        if (exchangeSourceRight == view.right){
+                        if (exchangeSourceRight == view.right) {
                             abovePuzzleImageViews.add(view)
-                            abovePuzzleImageViewsRect.add(Rect(view.left,view.top,view.right,view.bottom))
+                            abovePuzzleImageViewsRect.add(Rect(view.left, view.top, view.right, view.bottom))
                         }
-                        if (exchangeSourceRight == view.left - frameSize){
+                        if (exchangeSourceRight == view.left - frameSize) {
                             underPuzzleImageViews.add(view)
-                            underPuzzleImageViewsRect.add(Rect(view.left,view.top,view.right,view.bottom))
+                            underPuzzleImageViewsRect.add(Rect(view.left, view.top, view.right, view.bottom))
                         }
                     }
                     isAdjusterBorder = true
+                    showGuildLine = true
                     adjustBorder = BORDER_RIGHT
                     onHideUtilsListener()
                     return true
@@ -308,20 +339,21 @@ class PuzzleLayout @JvmOverloads constructor(
                 // 动态调整上边界，拦截
                 val topRange = (exchangeSourceTop - moveBorderThreshold)..(exchangeSourceTop + moveBorderThreshold)
                 if (exchange && exchangeSourceTop != frameSize && pressedY.roundToInt() in topRange) {
-                    for (i in 0 until childCount){
+                    for (i in 0 until childCount) {
                         val view = getChildAt(i) as PuzzleImageView
                         // 边界下面的View
-                        if (exchangeSourceTop == view.top){
+                        if (exchangeSourceTop == view.top) {
                             underPuzzleImageViews.add(view)
-                            underPuzzleImageViewsRect.add(Rect(view.left,view.top,view.right,view.bottom))
+                            underPuzzleImageViewsRect.add(Rect(view.left, view.top, view.right, view.bottom))
                         }
                         // 边界上面的View
-                        if (exchangeSourceTop == view.bottom + frameSize){
+                        if (exchangeSourceTop == view.bottom + frameSize) {
                             abovePuzzleImageViews.add(view)
-                            abovePuzzleImageViewsRect.add(Rect(view.left,view.top,view.right,view.bottom))
+                            abovePuzzleImageViewsRect.add(Rect(view.left, view.top, view.right, view.bottom))
                         }
                     }
                     isAdjusterBorder = true
+                    showGuildLine = true
                     adjustBorder = BORDER_TOP
                     onHideUtilsListener()
                     return true
@@ -329,20 +361,21 @@ class PuzzleLayout @JvmOverloads constructor(
                 // 动态调整下边界，拦截
                 val bottomRange = (exchangeSourceBottom - moveBorderThreshold)..(exchangeSourceBottom + moveBorderThreshold)
                 if (exchange && exchangeSourceBottom != (height - frameSize) && pressedY.roundToInt() in bottomRange) {
-                    for (i in 0 until childCount){
+                    for (i in 0 until childCount) {
                         val view = getChildAt(i) as PuzzleImageView
                         // 边界上面的View
-                        if (exchangeSourceBottom == view.bottom){
+                        if (exchangeSourceBottom == view.bottom) {
                             abovePuzzleImageViews.add(view)
-                            abovePuzzleImageViewsRect.add(Rect(view.left,view.top,view.right,view.bottom))
+                            abovePuzzleImageViewsRect.add(Rect(view.left, view.top, view.right, view.bottom))
                         }
                         // 边界下面的View
-                        if (exchangeSourceBottom == view.top - frameSize){
+                        if (exchangeSourceBottom == view.top - frameSize) {
                             underPuzzleImageViews.add(view)
-                            underPuzzleImageViewsRect.add(Rect(view.left,view.top,view.right,view.bottom))
+                            underPuzzleImageViewsRect.add(Rect(view.left, view.top, view.right, view.bottom))
                         }
                     }
                     isAdjusterBorder = true
+                    showGuildLine = true
                     adjustBorder = BORDER_BOTTOM
                     onHideUtilsListener()
                     return true
@@ -351,73 +384,89 @@ class PuzzleLayout @JvmOverloads constructor(
                 val inOther = x !in (exchangeSourceLeft..exchangeSourceRight) ||
                         y !in (exchangeSourceTop..exchangeSourceBottom)
                 if (inOther && newSelect) {
-                    sourceImageView.alpha = 0.7F
-                    sourceImageView.scaleType = ScaleType.CENTER_INSIDE
                     newSelect = false
-                    isReplacing = true
+                    showGuildLine = true
                     adjustBorder = BORDER_DEFAULT
-                    onHideUtilsListener()
                 }
                 return inOther
+            }
+            MotionEvent.ACTION_POINTER_DOWN -> {
+                isScaling = true
+                isScaled = true
+                return false
+            }
+            MotionEvent.ACTION_POINTER_UP -> {
+                isScaling = false
             }
         }
         adjustBorder = BORDER_DEFAULT
         return false
     }
 
+    /**
+     * [MotionEvent.ACTION_MOVE]:
+     * 1. 双指按下时，不处理。
+     * 2. 调整大小时：调整子 View 大小
+     * 3. 拖动图片时：移动选中图片，并通过触摸坐标查找选中的子 View，并绘制选中子 View 边框
+     *
+     * [MotionEvent.ACTION_UP],[MotionEvent.ACTION_POINTER_UP]:
+     * 1. 还原透明度和 scaleType，并将拖动子 View 恢复到原位
+     * 2. 如果是调整大小：需要额外进行对当前拼图的位置生成新的模板，并保存到[template]
+     */
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val x = event.x
         val y = event.y
         val offsetX = (pressedX - x).roundToInt()
         val offsetY = (pressedY - y).roundToInt()
-        when (event.action) {
+        when (event.actionMasked) {
             MotionEvent.ACTION_MOVE -> {
+                // 双指按下，不处理
+                if (isScaled) {
+                    return true
+                }
+                // 调整图片大小
                 if (isAdjusterBorder) {
-//                    for (v in abovePuzzleImageViews){
-//                        v.showBorder(true)
-//                    }
-//                    for (v in underPuzzleImageViews){
-//                        v.showBorder(true)
-//                    }
                     when (adjustBorder) {
                         BORDER_LEFT, BORDER_RIGHT -> {
-                            if (limitSizeViewChange(adjustBorder,(lastMoveX-x).roundToInt())) {
+                            if (limitSizeViewChange(adjustBorder, (lastMoveX - x).roundToInt())) {
                                 lastMoveX = event.x
                                 lastMoveY = event.y
                                 isLimitAdjusterBorder = true
                                 return true
                             }
-                            for (i in abovePuzzleImageViews.indices){
+                            for (i in abovePuzzleImageViews.indices) {
                                 val view = abovePuzzleImageViews[i]
                                 val rect = abovePuzzleImageViewsRect[i]
-                                view.layout(rect.left,rect.top,rect.right-offsetX,rect.bottom)
+                                view.layout(rect.left, rect.top, rect.right - offsetX, rect.bottom)
                             }
-                            for (i in underPuzzleImageViews.indices){
+                            for (i in underPuzzleImageViews.indices) {
                                 val view = underPuzzleImageViews[i]
                                 val rect = underPuzzleImageViewsRect[i]
-                                view.layout(rect.left-offsetX,rect.top,rect.right,rect.bottom)
+                                view.layout(rect.left - offsetX, rect.top, rect.right, rect.bottom)
                             }
                         }
                         BORDER_TOP, BORDER_BOTTOM -> {
-                            if (limitSizeViewChange(adjustBorder,(lastMoveY-y).roundToInt())) {
+                            if (limitSizeViewChange(adjustBorder, (lastMoveY - y).roundToInt())) {
                                 lastMoveX = event.x
                                 lastMoveY = event.y
                                 isLimitAdjusterBorder = true
                                 return true
                             }
-                            for (i in abovePuzzleImageViews.indices){
+                            for (i in abovePuzzleImageViews.indices) {
                                 val view = abovePuzzleImageViews[i]
                                 val rect = abovePuzzleImageViewsRect[i]
-                                view.layout(rect.left,rect.top,rect.right,rect.bottom - offsetY)
+                                view.layout(rect.left, rect.top, rect.right, rect.bottom - offsetY)
                             }
-                            for (i in underPuzzleImageViews.indices){
+                            for (i in underPuzzleImageViews.indices) {
                                 val view = underPuzzleImageViews[i]
                                 val rect = underPuzzleImageViewsRect[i]
-                                view.layout(rect.left,rect.top-offsetY,rect.right,rect.bottom)
+                                view.layout(rect.left, rect.top - offsetY, rect.right, rect.bottom)
                             }
                         }
                     }
+                // 拖动交换图片位置
                 } else {
+                    // 修改透明度
                     if (sourceImageView.alpha != 0.7F) {
                         sourceImageView.alpha = 0.7F
                         sourceImageView.scaleType = ScaleType.CENTER_INSIDE
@@ -460,10 +509,19 @@ class PuzzleLayout @JvmOverloads constructor(
                 lastMoveX = event.x
                 lastMoveY = event.y
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                // 抬起后，还原透明度，交换图片
+                sourceImageView.alpha = 1.0F
+                clearAllImageViewSelectBorder()
+                showGuildLine = false
+                invalidate()
+                if (isScaled) {
+                    isScaled = false
+                    return true
+                }
                 isLimitAdjusterBorder = false
                 // 抬起后调整大小
-                if (isAdjusterBorder){
+                if (isAdjusterBorder) {
                     isAdjusterBorder = false
                     clearAllImageViewSelectBorder()
 
@@ -500,16 +558,13 @@ class PuzzleLayout @JvmOverloads constructor(
                     )
                     return true
                 }
-                // 抬起后，还原透明度，交换图片
-                sourceImageView.alpha = 1.0F
-                clearAllImageViewSelectBorder()
-                sourceImageView.scaleType = ScaleType.CENTER_CROP
+                // 复原被拖动的位置
                 sourceImageView.layout(
                     exchangeSourceLeft, exchangeSourceTop,
                     exchangeSourceRight, exchangeSourceBottom
                 )
-                isReplacing = false
                 isAdjusterBorder = false
+                // 交换图片
                 exchangeBitmaps()
             }
         }
@@ -537,18 +592,18 @@ class PuzzleLayout @JvmOverloads constructor(
         isMoveToStart = move
         when (adjustBorder) {
             BORDER_LEFT, BORDER_RIGHT -> {
-                if (offset > 0){
+                if (offset > 0) {
                     for (view in abovePuzzleImageViews) {
                         val rectWith = view.width - offset
-                        if(rectWith <= minPuzzleImageViewSize) {
+                        if (rectWith <= minPuzzleImageViewSize) {
                             view.showBorder(true)
                             return true
                         }
                     }
-                } else{
+                } else {
                     for (view in underPuzzleImageViews) {
                         val rectWith = view.width + offset
-                        if(rectWith <= minPuzzleImageViewSize) {
+                        if (rectWith <= minPuzzleImageViewSize) {
                             view.showBorder(true)
                             return true
                         }
@@ -559,7 +614,7 @@ class PuzzleLayout @JvmOverloads constructor(
                 if (offset > 0) {
                     for (view in abovePuzzleImageViews) {
                         val rectHeight = view.height - offset
-                        if(rectHeight <= minPuzzleImageViewSize) {
+                        if (rectHeight <= minPuzzleImageViewSize) {
                             view.showBorder(true)
                             return true
                         }
@@ -567,7 +622,7 @@ class PuzzleLayout @JvmOverloads constructor(
                 } else {
                     for (view in underPuzzleImageViews) {
                         val rectHeight = view.height + offset
-                        if(rectHeight <= minPuzzleImageViewSize) {
+                        if (rectHeight <= minPuzzleImageViewSize) {
                             view.showBorder(true)
                             return true
                         }
@@ -582,19 +637,30 @@ class PuzzleLayout @JvmOverloads constructor(
      * 交换两个View中的图片
      */
     private fun exchangeBitmaps() {
+        sourceImageView.scaleType = ScaleType.MATRIX
+        // 输入图片只有一张时，取消交换
         if (bitmapList.size <= 1) {
+            sourceImageView.centerCrop()
+            destinationImageView.centerCrop()
             return
         }
+        // 拖动到原来位置时，取消交换
         if (sourceIndex == -1 || destinationIndex == -1) {
+            sourceImageView.centerCrop()
             return
         }
-        destinationImageView = defaultPuzzleImageView
-        sourceImageView = defaultPuzzleImageView
+        // 进行交换
         val temp = bitmapList[sourceIndex]
         bitmapList[sourceIndex] = bitmapList[destinationIndex]
         bitmapList[destinationIndex] = temp
         (getChildAt(sourceIndex) as PuzzleImageView).setImageBitmap(bitmapList[sourceIndex])
         (getChildAt(destinationIndex) as PuzzleImageView).setImageBitmap(bitmapList[destinationIndex])
+        // 交换完成后，自适应缩放，并居中
+        sourceImageView.centerCrop()
+        destinationImageView.centerCrop()
+        // 恢复默认值
+        destinationImageView = defaultPuzzleImageView
+        sourceImageView = defaultPuzzleImageView
         sourceIndex = -1
         destinationIndex = -1
     }
@@ -616,6 +682,9 @@ class PuzzleLayout @JvmOverloads constructor(
                 i
             }
             view.setImageBitmap(bitmapList[index])
+            view.scaleType = ScaleType.MATRIX
+            // tag 是否是更换图片的 View【更换图片后需要重置缩放状态】
+            view.tag = false
             addView(view)
         }
     }
@@ -644,6 +713,12 @@ class PuzzleLayout @JvmOverloads constructor(
     }
 
 }
-
+/**
+ * 图片点击监听
+ */
 typealias OnImageClickListener = (index: Int, view: PuzzleImageView) -> Unit
+
+/**
+ * 隐藏工具栏监听
+ */
 typealias OnHideUtilsListener = () -> Unit
