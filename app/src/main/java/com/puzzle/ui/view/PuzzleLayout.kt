@@ -428,7 +428,7 @@ class PuzzleLayout @JvmOverloads constructor(
                 if (isAdjusterBorder) {
                     when (adjustBorder) {
                         BORDER_LEFT, BORDER_RIGHT -> {
-                            if (limitSizeViewChange(adjustBorder, (lastMoveX - x).roundToInt())) {
+                            if (limitSizeViewChange(adjustBorder, lastMoveX - x, event)) {
                                 lastMoveX = event.x
                                 lastMoveY = event.y
                                 isLimitAdjusterBorder = true
@@ -446,7 +446,7 @@ class PuzzleLayout @JvmOverloads constructor(
                             }
                         }
                         BORDER_TOP, BORDER_BOTTOM -> {
-                            if (limitSizeViewChange(adjustBorder, (lastMoveY - y).roundToInt())) {
+                            if (limitSizeViewChange(adjustBorder, (lastMoveY - y), event)) {
                                 lastMoveX = event.x
                                 lastMoveY = event.y
                                 isLimitAdjusterBorder = true
@@ -580,53 +580,75 @@ class PuzzleLayout @JvmOverloads constructor(
     /**
      * 判断滑动调整是否已经达到最小宽高的阈值
      *
-     * @param offset  0 :向左，或向上
+     * @param offset  > 0 :向左，或向上
      * @param adjustBorder View移动的边框 [BORDER_TOP], [BORDER_BOTTOM], [BORDER_LEFT], [BORDER_RIGHT]
      * @return 是否需要停止大小调整
      */
-    private fun limitSizeViewChange(adjustBorder: Int, offset: Int): Boolean {
-        val move = offset >= 0
-        if (isLimitAdjusterBorder /*&& isMoveToStart == move*/) {
+    private fun limitSizeViewChange(adjustBorder: Int, offset: Float, event: MotionEvent): Boolean {
+//        val x = event.x.roundToInt()
+//        val y = event.y.roundToInt()
+//        // 当前滑动的方向，大于 0 时, 表示向左或向上滑动
+//        val move = if (abs(offset) > 2) {
+//            offset >= 0
+//        } else {
+//            isMoveToStart
+//        }
+//        // 限制滑动
+//        val limitedByPosition = when(adjustBorder) {
+//            BORDER_TOP -> y > exchangeSourceBottom - minPuzzleImageViewSize
+//            BORDER_BOTTOM -> y < exchangeSourceTop + minPuzzleImageViewSize
+//            BORDER_LEFT -> x < exchangeSourceRight - minPuzzleImageViewSize
+//            BORDER_RIGHT -> x < exchangeSourceLeft + minPuzzleImageViewSize
+//            else -> false
+//        }
+//        Log.e("kkl", "$isMoveToStart | $move | $limitedByPosition | $y : $exchangeSourceTop..$exchangeSourceBottom | $x : $exchangeSourceLeft..$exchangeSourceRight | $minPuzzleImageViewSize")
+//        if (isMoveToStart != move && !limitedByPosition) {
+//            isLimitAdjusterBorder = false
+//            isMoveToStart = move
+//        }
+        if (isLimitAdjusterBorder ) {
             return true
         }
-        isMoveToStart = move
         when (adjustBorder) {
             BORDER_LEFT, BORDER_RIGHT -> {
-                if (offset > 0) {
-                    for (view in abovePuzzleImageViews) {
-                        val rectWith = view.width - offset
-                        if (rectWith <= minPuzzleImageViewSize) {
-                            view.showBorder(true)
-                            return true
-                        }
-                    }
-                } else {
-                    for (view in underPuzzleImageViews) {
-                        val rectWith = view.width + offset
-                        if (rectWith <= minPuzzleImageViewSize) {
-                            view.showBorder(true)
-                            return true
-                        }
-                    }
+                if (checkLimitSize(false, offset)) {
+                    return true
                 }
             }
             BORDER_TOP, BORDER_BOTTOM -> {
-                if (offset > 0) {
-                    for (view in abovePuzzleImageViews) {
-                        val rectHeight = view.height - offset
-                        if (rectHeight <= minPuzzleImageViewSize) {
-                            view.showBorder(true)
-                            return true
-                        }
-                    }
-                } else {
-                    for (view in underPuzzleImageViews) {
-                        val rectHeight = view.height + offset
-                        if (rectHeight <= minPuzzleImageViewSize) {
-                            view.showBorder(true)
-                            return true
-                        }
-                    }
+                if (checkLimitSize(true, offset)) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    /**
+     * 校验调整后是否有子 View 的宽高会小于最小值[minPuzzleImageViewSize]
+     * @param isVerticalAdjust true：调整边框为[BORDER_BOTTOM]或[BORDER_TOP]; false: 调整边框为[BORDER_LEFT]或[BORDER_RIGHT]
+     */
+    private fun checkLimitSize(isVerticalAdjust: Boolean, offset: Float): Boolean {
+        if (offset > 0) {
+            for (view in abovePuzzleImageViews) {
+                val rectSize = if (isVerticalAdjust) {
+                                view.height - offset
+                            } else {
+                                view.width - offset
+                            }
+                if (rectSize <= minPuzzleImageViewSize) {
+                    return true
+                }
+            }
+        } else {
+            for (view in underPuzzleImageViews) {
+                val rectSize = if (isVerticalAdjust) {
+                                view.height + offset
+                            } else {
+                                view.width + offset
+                            }
+                if (rectSize <= minPuzzleImageViewSize) {
+                    return true
                 }
             }
         }
@@ -704,7 +726,7 @@ class PuzzleLayout @JvmOverloads constructor(
      * 清空所有子View的选中标记
      */
     fun clearAllImageViewSelectBorder() {
-        for (i in 0..childCount) {
+        for (i in 0 until childCount) {
             val view = getChildAt(i)
             if (view is PuzzleImageView) {
                 view.showBorder(false)

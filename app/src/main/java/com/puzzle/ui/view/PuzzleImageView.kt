@@ -85,11 +85,6 @@ class PuzzleImageView @JvmOverloads constructor(
     private val scaleGestureDetector =
         ScaleGestureDetector(context, object : ScaleGestureDetector.OnScaleGestureListener {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                // 最大缩放到原图的 maxScale 倍
-                val lastScale = matrixValue[Matrix.MSCALE_X]
-                if (lastScale > maxScale) {
-                    return false
-                }
                 // 对缩放比例进行调整，增加 1% 的缩放倍数，视觉效果更好
                 val scaleFactor = detector.scaleFactor
                 val scale = if (scaleFactor > 1) {
@@ -97,6 +92,11 @@ class PuzzleImageView @JvmOverloads constructor(
                             } else {
                                 scaleFactor * reductionFactor
                             }
+                // 最大缩放到原图的 maxScale 倍
+                val lastScale = matrixValue[Matrix.MSCALE_X]
+                if (lastScale > maxScale && scale > 1) {
+                    return true
+                }
                 adjustMatrix.postScale(scale, scale, centerPoint.first, centerPoint.second)
                 imageMatrix = adjustMatrix
                 return true
