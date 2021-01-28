@@ -145,6 +145,9 @@ class PuzzleLayout @JvmOverloads constructor(
     // 对外部提供，监听点击子 View 的点击，用于显示工具栏
     var onImageClickListener: OnImageClickListener = { _, _ -> }
 
+    // 监听图片位置交换
+    var onImageExchangeListener: OnImageExchangeListener = { _, _ -> }
+
     // 用于监听点击子 View 的点击，用于响应绘制选中框，
     private val puzzleImageViewOnClickListener: OnImageClickListener = { index, view ->
         clearAllImageViewSelectBorder()
@@ -464,7 +467,7 @@ class PuzzleLayout @JvmOverloads constructor(
                             }
                         }
                     }
-                // 拖动交换图片位置
+                    // 拖动交换图片位置
                 } else {
                     // 修改透明度
                     if (sourceImageView.alpha != 0.7F) {
@@ -473,12 +476,10 @@ class PuzzleLayout @JvmOverloads constructor(
                         onHideUtilsListener()
                     }
                     // 移动选中的View
-                    sourceImageView.apply {
-                        layout(
-                            exchangeSourceLeft - offsetX, exchangeSourceTop - offsetY,
-                            exchangeSourceRight - offsetX, exchangeSourceBottom - offsetY
-                        )
-                    }
+                    sourceImageView.layout(
+                        exchangeSourceLeft - offsetX, exchangeSourceTop - offsetY,
+                        exchangeSourceRight - offsetX, exchangeSourceBottom - offsetY
+                    )
                     // 拖动回原来位置时，清空选中
                     if (y.roundToInt() in exchangeSourceTop..exchangeSourceBottom &&
                         x.roundToInt() in exchangeSourceLeft..exchangeSourceRight
@@ -677,6 +678,7 @@ class PuzzleLayout @JvmOverloads constructor(
         bitmapList[destinationIndex] = temp
         (getChildAt(sourceIndex) as PuzzleImageView).setImageBitmap(bitmapList[sourceIndex])
         (getChildAt(destinationIndex) as PuzzleImageView).setImageBitmap(bitmapList[destinationIndex])
+        onImageExchangeListener(sourceIndex, destinationIndex)
         // 交换完成后，自适应缩放，并居中
         sourceImageView.centerCrop()
         destinationImageView.centerCrop()
@@ -744,3 +746,5 @@ typealias OnImageClickListener = (index: Int, view: PuzzleImageView) -> Unit
  * 隐藏工具栏监听
  */
 typealias OnHideUtilsListener = () -> Unit
+
+typealias OnImageExchangeListener = (from: Int, to: Int) -> Unit

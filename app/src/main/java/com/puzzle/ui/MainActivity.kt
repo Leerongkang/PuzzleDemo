@@ -371,6 +371,11 @@ class MainActivity : BaseActivity() {
                 imageUpdateGroup.closeImageUpdateImageView.performClick()
             }
         }
+        puzzleLayout.onImageExchangeListener = { from, to ->
+            val tempBitmap = bitmapList[from]
+            bitmapList[from] = bitmapList[to]
+            bitmapList[to] = tempBitmap
+        }
         imageUpdateGroup.closeClickImageView.setOnClickListener {
             selectedImageView.performClick()
         }

@@ -191,7 +191,7 @@ class PuzzleImageView @JvmOverloads constructor(
                 fixTransformation()
                 return true
             }
-            MotionEvent.ACTION_POINTER_UP -> {
+            MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_CANCEL -> {
                 fixTransformation()
             }
         }
