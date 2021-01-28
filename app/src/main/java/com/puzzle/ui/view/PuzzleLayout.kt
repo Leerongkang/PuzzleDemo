@@ -1,12 +1,10 @@
 package com.puzzle.ui.view
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView.ScaleType
 import com.puzzle.R
@@ -240,7 +238,7 @@ class PuzzleLayout @JvmOverloads constructor(
             val isUpdate = imageView.tag as Boolean
             // 更换图片后，自适应缩放并居中
             if (isUpdate) {
-                imageView.centerCrop()
+                imageView.center(PuzzleImageView.CENTER_CROP)
                 imageView.tag = false
             }
         }
@@ -390,6 +388,8 @@ class PuzzleLayout @JvmOverloads constructor(
                     newSelect = false
                     showGuildLine = true
                     adjustBorder = BORDER_DEFAULT
+                    // 防止闪烁
+                    sourceImageView.visibility = View.INVISIBLE
                 }
                 return inOther
             }
@@ -472,8 +472,12 @@ class PuzzleLayout @JvmOverloads constructor(
                     // 修改透明度
                     if (sourceImageView.alpha != 0.7F) {
                         sourceImageView.alpha = 0.7F
-                        sourceImageView.scaleType = ScaleType.CENTER_INSIDE
+                        sourceImageView.center(PuzzleImageView.CENTER_INSIDE)
                         onHideUtilsListener()
+                    }
+                    // 防止闪烁
+                    if (sourceImageView.visibility == View.INVISIBLE) {
+                        sourceImageView.visibility = View.VISIBLE
                     }
                     // 移动选中的View
                     sourceImageView.layout(
@@ -513,6 +517,9 @@ class PuzzleLayout @JvmOverloads constructor(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                 // 抬起后，还原透明度，交换图片
                 sourceImageView.alpha = 1.0F
+                if (sourceImageView.visibility == View.INVISIBLE) {
+                    sourceImageView.visibility = View.VISIBLE
+                }
                 clearAllImageViewSelectBorder()
                 showGuildLine = false
                 invalidate()
@@ -663,13 +670,13 @@ class PuzzleLayout @JvmOverloads constructor(
         sourceImageView.scaleType = ScaleType.MATRIX
         // 输入图片只有一张时，取消交换
         if (bitmapList.size <= 1) {
-            sourceImageView.centerCrop()
-            destinationImageView.centerCrop()
+            sourceImageView.center(PuzzleImageView.CENTER_CROP)
+            destinationImageView.center(PuzzleImageView.CENTER_CROP)
             return
         }
         // 拖动到原来位置时，取消交换
         if (sourceIndex == -1 || destinationIndex == -1) {
-            sourceImageView.centerCrop()
+            sourceImageView.center(PuzzleImageView.CENTER_CROP)
             return
         }
         // 进行交换
@@ -680,8 +687,8 @@ class PuzzleLayout @JvmOverloads constructor(
         (getChildAt(destinationIndex) as PuzzleImageView).setImageBitmap(bitmapList[destinationIndex])
         onImageExchangeListener(sourceIndex, destinationIndex)
         // 交换完成后，自适应缩放，并居中
-        sourceImageView.centerCrop()
-        destinationImageView.centerCrop()
+        sourceImageView.center(PuzzleImageView.CENTER_CROP)
+        destinationImageView.center(PuzzleImageView.CENTER_CROP)
         // 恢复默认值
         destinationImageView = defaultPuzzleImageView
         sourceImageView = defaultPuzzleImageView

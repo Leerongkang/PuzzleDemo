@@ -28,6 +28,9 @@ class PuzzleImageView @JvmOverloads constructor(
         private const val DRAWABLE_TOP = 3
         private const val DRAWABLE_RIGHT = 4
         private const val DRAWABLE_BOTTOM = 5
+        /** [center] 函数的入参，自适应缩放模式 */
+        const val CENTER_CROP = 0     // 匹配最短边
+        const val CENTER_INSIDE = 1   // 匹配最长边
     }
 
     // 是否绘制边框
@@ -115,7 +118,7 @@ class PuzzleImageView @JvmOverloads constructor(
     init {
         scaleType = ScaleType.MATRIX
         post {
-            centerCrop()
+            center(CENTER_CROP)
         }
     }
 
@@ -140,7 +143,7 @@ class PuzzleImageView @JvmOverloads constructor(
         if (scaleType == ScaleType.CENTER_CROP) {
             return
         }
-        centerCrop()
+        center(CENTER_CROP)
     }
 
     /**
@@ -226,9 +229,10 @@ class PuzzleImageView @JvmOverloads constructor(
     }
 
     /**
-     * 将图片缩放，匹配最短边，并居中
+     * 将图片自适应缩放，并居中
+     * @param type [CENTER_CROP]: 匹配最短边； [CENTER_INSIDE]: 匹配最长边
      */
-    fun centerCrop() {
+    fun center(type: Int) {
         val drawableWidth= drawable.bounds.width().toFloat()
         val drawableHeight = drawable.bounds.height().toFloat()
         val viewWidth = width - paddingLeft - paddingRight
@@ -237,13 +241,25 @@ class PuzzleImageView @JvmOverloads constructor(
         var dy = 0f
         val scaleX = viewWidth / drawableWidth
         val scaleY = viewHeight / drawableHeight
-        val scale = if (scaleX > scaleY) {
-                    dy = (viewHeight - (drawableHeight * scaleX)) * 0.5f
-                    scaleX
-                } else {
-                    dx = (viewWidth - drawableWidth * scaleY) * 0.5f
-                    scaleY
-                }
+        val scale = when(type) {
+            CENTER_CROP -> if (scaleX > scaleY) {
+                dy = (viewHeight - (drawableHeight * scaleX)) * 0.5f
+                scaleX
+            } else {
+                dx = (viewWidth - drawableWidth * scaleY) * 0.5f
+                scaleY
+            }
+
+            CENTER_INSIDE -> if (scaleX < scaleY) {
+                dy = (viewHeight - (drawableHeight * scaleX)) * 0.5f
+                scaleX
+            } else {
+                dx = (viewWidth - drawableWidth * scaleY) * 0.5f
+                scaleY
+            }
+            else -> 0F
+        }
+
         adjustMatrix.setScale(scale, scale)
         adjustMatrix.postTranslate(dx, dy)
         imageMatrix = adjustMatrix
@@ -257,7 +273,7 @@ class PuzzleImageView @JvmOverloads constructor(
         val drawableWidth = currentDrawableInfo(DRAWABLE_WIDTH)
         val drawableHeight = currentDrawableInfo(DRAWABLE_HEIGHT)
         if (drawableHeight < height || drawableWidth < width) {
-            centerCrop()
+            center(CENTER_CROP)
             return
         }
         // 上边界移动到 View 的内部，自动到顶部对齐
