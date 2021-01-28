@@ -32,6 +32,4 @@
     <string name="template_path_prefix">templates/300190</string>
     <string name="template_path_suffix">/thumbnail</string>
     <string name="template_path_suffix_pressed">/thumbnail_pressed</string>
-    <string name="save_success">保存成功</string>
-    <string name="replace_image_view">replaceImageView</string>
 </resources>
