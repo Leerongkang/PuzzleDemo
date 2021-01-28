@@ -5,26 +5,21 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.lrk.puzzle.demo.R
 import com.permissionx.guolindev.PermissionX
-import com.puzzle.R
 import com.puzzle.adappter.ImageAdapter
+import com.puzzle.coroutine.XXMainScope
 import kotlinx.android.synthetic.main.activity_image_select.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * 图片选择Activity
- * 通过接受Intent参数判断是单选还是多选，
- * intent.getBooleanExtra(INTENT_EXTRA_REPLACE,false)
- * true：  多选，可以选择1~9张
- * false： 单选，只能选择一张
- */
-class ImageSelectActivity : BaseActivity() {
+class ImageSelectActivity : AppCompatActivity() {
 
-    private var isReplaceImage = false
     private val selectImages = ArrayList<String>()
     private val selectedAdapter = ImageAdapter(selectImages, true) { adapter, pos ->
         selectImages.removeAt(pos)
@@ -35,40 +30,25 @@ class ImageSelectActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_select)
-        isReplaceImage = intent.getBooleanExtra(INTENT_EXTRA_REPLACE,false)
-        requestPermission()
         initViews()
-    }
-
-    private fun initAllImageRecyclerView(){
-        mainScope.launch {
-            selectLoadingAnimateView.playAnimation()
-            selectLoadingAnimateView.alpha = 1F
+        requestPermission()
+        XXMainScope().launch {
             val localImages = getLocalImages()
-            if (isReplaceImage) {
-                imageSelectedRecyclerView.visibility = View.GONE
-                tipsTextView.visibility = View.GONE
-                selectNumTextView.visibility = View.GONE
-                doneTextView.visibility = View.GONE
-                allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
-                    intent.putExtra(INTENT_EXTRA_DATA_REPLACE, adapter.imageList[pos])
-                    setResult(INTENT_REQUEST_CODE_REPLACE_IMAGE, intent)
-                    finish()
-                }
-            } else {
-                allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
-                    if (selectImages.size < 9) {
-                        selectImages.add(adapter.imageList[pos])
-                        selectedAdapter.notifyItemInserted(selectImages.size - 1)
-                        updateSelectNum()
-                        imageSelectedRecyclerView.scrollToPosition(selectImages.size - 1)
-                    } else {
-                        showToast(getString(R.string.select_limit_tips))
-                    }
+            allImageRecyclerView.adapter = ImageAdapter(localImages) { adapter, pos ->
+                if (selectImages.size < 9) {
+                    selectImages.add(adapter.imageList[pos])
+                    selectedAdapter.notifyItemInserted(selectImages.size - 1)
+                    updateSelectNum()
+                } else {
+                    Toast.makeText(
+                        this@ImageSelectActivity,
+                        getString(R.string.select_limit_tips),
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
                 }
             }
             allImageRecyclerView.layoutManager = GridLayoutManager(this@ImageSelectActivity, 4)
-            selectLoadingAnimateView.alpha = 0F
         }
     }
 
@@ -91,9 +71,6 @@ class ImageSelectActivity : BaseActivity() {
                 })
             }
         }
-        exitImageView.setOnClickListener {
-            finish()
-        }
     }
 
     private fun updateSelectNum() {
@@ -110,9 +87,6 @@ class ImageSelectActivity : BaseActivity() {
         }
     }
 
-    /**
-     * 使用协程，通过 [contentResolver] 获取手机本地图片
-     */
     private suspend fun getLocalImages(): List<String> = withContext(Dispatchers.IO) {
         val images = mutableListOf<String>()
         val imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -133,9 +107,6 @@ class ImageSelectActivity : BaseActivity() {
         images
     }
 
-    /**
-     * 使用 [PermissionX] 获取存储权限
-     */
     private fun requestPermission() {
         PermissionX.init(this).permissions(
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -150,9 +121,11 @@ class ImageSelectActivity : BaseActivity() {
             )
         }.request { allGranted, _, deniedList ->
             if (!allGranted) {
-                showToast(getString(R.string.denied_permissions, deniedList))
-            } else {
-                initAllImageRecyclerView()
+                Toast.makeText(
+                    this,
+                    getString(R.string.denied_permissions, deniedList),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

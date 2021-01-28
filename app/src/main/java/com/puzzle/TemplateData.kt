@@ -1,4 +1,4 @@
-package com.puzzle.template
+package com.puzzle
 
 import android.content.Context
 import com.google.gson.Gson
@@ -92,7 +92,7 @@ object TemplateData {
         withContext(Dispatchers.IO) {
             val map = data[num]
             if (map.isNullOrEmpty()) {
-                val json = context.assets.open("data/$num.json").buffered().reader().readText()
+                val json = context.assets.open("data/$num").buffered().reader().readText()
                 val mapFroJson = gson.fromJson<HashMap<Int, List<Template>>>(json, mapType)
                 data[num] = mapFroJson
                 mapFroJson
