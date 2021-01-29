@@ -48,11 +48,14 @@ class MainActivity : BaseActivity() {
 
     // 边框图片尺寸
     private val frameIconSize = 40
-    // 图片单词旋转的角度
+
+    // 图片单次旋转的角度
     private val rotateAngle = 90F
-    // 单张图片替换时，该View的下标
+
+    // 单张图片替换时，该 View 的下标
     private var selectedImageIndex = -1
-    // 输入图片数量，使用Intent传入
+
+    // 输入图片数量，使用 Intent 传入
     private var selectNum = 1
 
     // 模板选择部分，是否隐藏标志位
@@ -65,22 +68,30 @@ class MainActivity : BaseActivity() {
 
     // 防止模板部分的 TabLayout 与 RecyclerView 联动时，滚动冲突
     private var shouldUpdateTabLayout = false
+
     private var puzzleViewInit = false
+
     // 当前的边框模式，边框图标Id to 边框描述，用于界面显示
     private var currentFrameMode = 0 to ""
+
     // 输入图片路径
     private var images = mutableListOf<String>()
+
     // 输入图片解析后的Bitmap
     private val bitmapList = mutableListOf<Bitmap>()
+
     // 用于模板联动的数据结构
     private val template2CategoryMap = mutableMapOf<Int, Int>()
     private val fistTemplateInCategoryMap = mutableMapOf<Int, Int>()
     private val allTemplates = mutableListOf<Template>()
+
     // 替换图片的View
     private lateinit var selectedImageView: PuzzleImageView
+
     private val templateRecyclerViewLayoutManager = LinearLayoutManager(this).apply {
         orientation = LinearLayoutManager.HORIZONTAL
     }
+
     // 带修正的当前选中图片下标，防止 bitmapList 下标越界（当导入图片只有一张时，可能出现）
     private val bitmapIndex
         get() = if (selectedImageIndex > bitmapList.lastIndex) {
@@ -169,21 +180,29 @@ class MainActivity : BaseActivity() {
      * 根据屏幕宽高计算拼图的大小
      */
     private fun resizePuzzleLayout() {
+        // 获取父容器宽高
         val containerWidth = puzzleContainer.width
         val containerHeight = puzzleContainer.height
+        // 获取当前选中模板宽高
         val templateWidth = puzzleLayout.template.totalWidth
         val templateHeight = puzzleLayout.template.totalHeight
+        // 默认使用父容器的宽度作为拼图高度
         var finalWidth = containerWidth
+        // 通过模板宽度与父容器宽度比例计算拼图高度
         var finalHeight =
             (templateHeight * (containerWidth / templateWidth.toDouble())).roundToInt()
+        // 如果计算得出的拼图高度大于父容器高度，则使用父容器高度计算比例，再求拼图宽度
         if (finalHeight > containerHeight) {
             finalHeight = containerHeight
             finalWidth =
                 (templateWidth * (containerHeight / templateHeight.toDouble())).roundToInt()
         }
+        // 设置缩放比例
         puzzleLayout.proportion = finalHeight / templateHeight.toDouble()
+        // 父容器为 FrameLayout，因此可以将 puzzleLayout 居中
         puzzleLayout.layoutParams =
             FrameLayout.LayoutParams(finalWidth, finalHeight, Gravity.CENTER)
+        puzzleLayout.drawingCache
     }
 
     /**
@@ -192,17 +211,17 @@ class MainActivity : BaseActivity() {
     private suspend fun decodeBitmaps() = withContext(Dispatchers.IO) {
         val bitmaps = mutableListOf<Bitmap>()
         images.forEach {
-            val decodeBitmap: Bitmap = Glide.with(this@MainActivity)
-                .asBitmap()
-                .override(1440)
-                .load("file://$it")
-                .submit()
-                .get()
+            val decodeBitmap: Bitmap =
+                Glide.with(this@MainActivity)
+                     .asBitmap()
+                     .override(1440)
+                     .load("file://$it")
+                     .submit()
+                     .get()
             bitmaps.add(decodeBitmap)
         }
         bitmapList.clear()
         bitmapList.addAll(bitmaps)
-//        PuzzleQualityManager.puzzleQuality.metric.input_suc = PuzzleMetric.
         bitmaps
     }
 
