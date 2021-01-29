@@ -12,6 +12,7 @@ import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import com.puzzle.R
 import com.puzzle.dp2px
+import kotlin.math.abs
 
 /**
  * 用于显示单张图片的View，选中时有红色边框
@@ -49,12 +50,16 @@ class PuzzleImageView @JvmOverloads constructor(
     // 边框宽度
     private val borderWidth = 5.dp2px()
 
-    // 手指按下时的坐标
-    private var lastX = 0F
-    private var lastY = 0F
-
     // 最大放大倍数
     private val maxScale = 3
+
+    // 图片移动阈值，手指滑动距离小于阈值时将视为点击事件
+    private var moveThreshold = 1
+
+    // 手指按下时的坐标
+    private var lastX = 0F
+
+    private var lastY = 0F
 
     // 图片放大调整因子
     private val amplificationFactor = 1.01F
@@ -180,9 +185,12 @@ class PuzzleImageView @JvmOverloads constructor(
                     val dy = event.y - lastY
                     lastX = event.x
                     lastY = event.y
+                    // 滑动大于阈值，不会触发点击事件
+                    if (abs(dy) > moveThreshold || abs(dx) > moveThreshold) {
+                        isTranslated = true
+                    }
                     adjustMatrix.postTranslate(dx, dy)
                     imageMatrix = adjustMatrix
-                    isTranslated = true
                     return true
                 }
             }
