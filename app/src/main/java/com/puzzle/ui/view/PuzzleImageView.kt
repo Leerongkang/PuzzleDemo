@@ -8,6 +8,7 @@ import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
+import android.view.View
 import androidx.appcompat.widget.AppCompatImageView
 import com.puzzle.R
 import com.puzzle.dp2px
@@ -194,8 +195,13 @@ class PuzzleImageView @JvmOverloads constructor(
                 fixTransformation()
                 return true
             }
-            MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_CANCEL -> {
+            MotionEvent.ACTION_POINTER_UP -> {
                 fixTransformation()
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                if (visibility == View.INVISIBLE) {
+                    visibility = View.VISIBLE
+                }
             }
         }
         return true
@@ -242,22 +248,22 @@ class PuzzleImageView @JvmOverloads constructor(
         val scaleX = viewWidth / drawableWidth
         val scaleY = viewHeight / drawableHeight
         val scale = when(type) {
-            CENTER_CROP -> if (scaleX > scaleY) {
-                dy = (viewHeight - (drawableHeight * scaleX)) * 0.5f
-                scaleX
-            } else {
-                dx = (viewWidth - drawableWidth * scaleY) * 0.5f
-                scaleY
-            }
+                    CENTER_CROP -> if (scaleX > scaleY) {
+                        dy = (viewHeight - (drawableHeight * scaleX)) * 0.5f
+                        scaleX
+                    } else {
+                        dx = (viewWidth - drawableWidth * scaleY) * 0.5f
+                        scaleY
+                    }
 
-            CENTER_INSIDE -> if (scaleX < scaleY) {
-                dy = (viewHeight - (drawableHeight * scaleX)) * 0.5f
-                scaleX
-            } else {
-                dx = (viewWidth - drawableWidth * scaleY) * 0.5f
-                scaleY
-            }
-            else -> 0F
+                    CENTER_INSIDE -> if (scaleX < scaleY) {
+                        dy = (viewHeight - (drawableHeight * scaleX)) * 0.5f
+                        scaleX
+                    } else {
+                        dx = (viewWidth - drawableWidth * scaleY) * 0.5f
+                        scaleY
+                    }
+                    else -> 0F
         }
 
         adjustMatrix.setScale(scale, scale)
