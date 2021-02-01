@@ -237,7 +237,7 @@ class PuzzleLayout @JvmOverloads constructor(
             imageView.layout(viewLeft, viewTop, viewRight, viewBottom)
             val isUpdate = imageView.tag as Boolean
             // 更换图片后，自适应缩放并居中
-            if (isUpdate) {
+            if (isUpdate || bitmapList.size == 1) {
                 imageView.center(PuzzleImageView.CENTER_CROP)
                 imageView.tag = false
             }
@@ -745,13 +745,16 @@ class PuzzleLayout @JvmOverloads constructor(
 
 }
 /**
- * 图片点击监听
+ * 图片点击回调
  */
 typealias OnImageClickListener = (index: Int, view: PuzzleImageView) -> Unit
 
 /**
- * 隐藏工具栏监听
+ * 隐藏工具栏回调
  */
 typealias OnHideUtilsListener = () -> Unit
 
+/**
+ * 拖动交换图片回调
+ */
 typealias OnImageExchangeListener = (from: Int, to: Int) -> Unit

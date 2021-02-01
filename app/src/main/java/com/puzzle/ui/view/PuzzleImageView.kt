@@ -320,13 +320,29 @@ class PuzzleImageView @JvmOverloads constructor(
      * 计算经过调整后的图片大小以及位置信息
      * @param info [DRAWABLE_WIDTH], [DRAWABLE_HEIGHT], [DRAWABLE_LEFT], [DRAWABLE_TOP], [DRAWABLE_RIGHT], [DRAWABLE_BOTTOM]
      */
-    private fun currentDrawableInfo(info: Int) = when (info) {
-        DRAWABLE_WIDTH -> matrixValue[Matrix.MSCALE_X] * drawable.bounds.width()
-        DRAWABLE_HEIGHT -> matrixValue[Matrix.MSCALE_Y] * drawable.bounds.height()
-        DRAWABLE_LEFT -> matrixValue[Matrix.MTRANS_X]
-        DRAWABLE_TOP -> matrixValue[Matrix.MTRANS_Y]
-        DRAWABLE_RIGHT -> matrixValue[Matrix.MTRANS_X] + matrixValue[Matrix.MSCALE_X] * drawable.bounds.width()
-        DRAWABLE_BOTTOM -> matrixValue[Matrix.MTRANS_Y] + matrixValue[Matrix.MSCALE_Y] * drawable.bounds.height()
-        else -> 0F
+    private fun currentDrawableInfo(
+        info: Int
+    ) = when (info) {
+            DRAWABLE_WIDTH -> {
+                matrixValue[Matrix.MSCALE_X] * drawable.bounds.width()
+            }
+            DRAWABLE_HEIGHT -> {
+                matrixValue[Matrix.MSCALE_Y] * drawable.bounds.height()
+            }
+            DRAWABLE_LEFT -> {
+                matrixValue[Matrix.MTRANS_X]
+            }
+            DRAWABLE_TOP -> {
+                matrixValue[Matrix.MTRANS_Y]
+            }
+            DRAWABLE_RIGHT -> {
+                matrixValue[Matrix.MTRANS_X] + matrixValue[Matrix.MSCALE_X] * drawable.bounds.width()
+            }
+            DRAWABLE_BOTTOM -> {
+                matrixValue[Matrix.MTRANS_Y] + matrixValue[Matrix.MSCALE_Y] * drawable.bounds.height()
+            }
+            else -> {
+                0F
+            }
     }
 }

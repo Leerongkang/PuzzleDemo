@@ -41,7 +41,7 @@ class ImageSelectActivity : BaseActivity() {
     }
 
     private fun initAllImageRecyclerView(){
-        mainScope.launch {
+        launch {
             selectLoadingAnimateView.playAnimation()
             selectLoadingAnimateView.alpha = 1F
             val localImages = getLocalImages()

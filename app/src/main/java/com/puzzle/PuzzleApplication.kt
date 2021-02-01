@@ -6,14 +6,11 @@ import android.content.Context
 /**
  * 拼图demo全局application
  */
+lateinit var app: PuzzleApplication
 class PuzzleApplication : Application() {
 
-    companion object {
-        lateinit var appContext: Context
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-        appContext = applicationContext
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        app = this
     }
 }

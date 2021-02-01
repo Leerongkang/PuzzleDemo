@@ -32,7 +32,6 @@ import kotlinx.android.synthetic.main.layout_template.view.*
 import kotlinx.android.synthetic.main.layout_title.*
 import kotlinx.android.synthetic.main.layout_title.view.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.roundToInt
@@ -114,27 +113,22 @@ class MainActivity : BaseActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == INTENT_REQUEST_CODE_REPLACE_IMAGE) {
-            data?.getStringExtra(INTENT_EXTRA_DATA_REPLACE)
-                ?.let {
-                    mainScope.launch {
-                        playLoadingAnimation()
-                        // 防止输入图片只有一张时，下标越界
-                        selectedImageIndex = if (selectedImageIndex > images.lastIndex){
-                                                0
-                                            } else {
-                                                selectedImageIndex
-                                            }
-                        images[selectedImageIndex] = it
-                        val changeBitmap = decodeBitmap(it)
-                        bitmapList[selectedImageIndex] = changeBitmap
-//                        selectedImageView.setImageBitmap(changeBitmap)
-                        puzzleLayout.initViews(bitmapList,puzzleLayout.template.imageCount)
-                        pauseLoadingAnimation()
-                        selectedImageView.tag = true
-//                        imageUpdateGroup.closeImageUpdateImageView.performClick()
-//                        selectedImageIndex = -1
-                    }
+            val replacedImagePath = data?.getStringExtra(INTENT_EXTRA_DATA_REPLACE) ?: return
+            launch {
+                playLoadingAnimation()
+                // 防止输入图片只有一张时，下标越界
+                selectedImageIndex = if (selectedImageIndex > images.lastIndex) {
+                    0
+                } else {
+                    selectedImageIndex
                 }
+                images[selectedImageIndex] = replacedImagePath
+                val changeBitmap = decodeBitmap(replacedImagePath)
+                bitmapList[selectedImageIndex] = changeBitmap
+                puzzleLayout.initViews(bitmapList, puzzleLayout.template.imageCount)
+                pauseLoadingAnimation()
+                selectedImageView.tag = true
+            }
         }
     }
 
@@ -143,7 +137,7 @@ class MainActivity : BaseActivity() {
      */
     private fun initWithCoroutines() {
         loadingAnimateView.repeatCount = -1
-        mainScope.launch {
+        launch {
             playLoadingAnimation()
             loadTemplateData()
             initViews()
@@ -194,15 +188,13 @@ class MainActivity : BaseActivity() {
         // 如果计算得出的拼图高度大于父容器高度，则使用父容器高度计算比例，再求拼图宽度
         if (finalHeight > containerHeight) {
             finalHeight = containerHeight
-            finalWidth =
-                (templateWidth * (containerHeight / templateHeight.toDouble())).roundToInt()
+            finalWidth = (templateWidth * (containerHeight / templateHeight.toDouble())).roundToInt()
         }
         // 设置缩放比例
         puzzleLayout.proportion = finalHeight / templateHeight.toDouble()
         // 父容器为 FrameLayout，因此可以将 puzzleLayout 居中
         puzzleLayout.layoutParams =
             FrameLayout.LayoutParams(finalWidth, finalHeight, Gravity.CENTER)
-        puzzleLayout.drawingCache
     }
 
     /**
@@ -214,7 +206,7 @@ class MainActivity : BaseActivity() {
             val decodeBitmap: Bitmap =
                 Glide.with(this@MainActivity)
                      .asBitmap()
-                     .override(1440)
+                     .override(1080)
                      .load("file://$it")
                      .submit()
                      .get()
@@ -231,7 +223,7 @@ class MainActivity : BaseActivity() {
     private suspend fun decodeBitmap(path: String) = withContext(Dispatchers.IO) {
         Glide.with(this@MainActivity)
             .asBitmap()
-            .override(1000)
+            .override(1080)
             .load("file://$path")
             .submit()
             .get()
@@ -459,7 +451,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun saveBitmap(view: View, fileName: String) {
-        mainScope.launch {
+        launch {
             playLoadingAnimation()
             val bitmap = view2bitmap(view)
             val savedUri = saveLocal(fileName, bitmap)
