@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginEnd="10dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/materialThumbnailImageView"
+        android:layout_width="70dp"
+        android:layout_height="105dp"
+        android:scaleType="centerInside"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@tools:sample/avatars"
+        android:contentDescription="@string/material"
+        android:background="#f2f2f2"/>
+
+    <ImageView
+        android:id="@+id/videoIconImageView"
+        android:layout_width="18dp"
+        android:layout_height="15dp"
+        android:layout_margin="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/puzzle__video_mark"
+        android:contentDescription="@string/material" />
+
+    <ImageView
+        android:id="@+id/downloadIconImageView"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:contentDescription="@string/material"
+        android:src="@drawable/puzzle__material_download"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/newIconImageView"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:padding="5dp"
+        android:contentDescription="@string/material"
+        android:src="@drawable/puzzle__new_material"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/downloadIconImageView" />
+</androidx.constraintlayout.widget.ConstraintLayout>

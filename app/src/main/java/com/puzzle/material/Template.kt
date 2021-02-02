@@ -1,4 +1,4 @@
-package com.puzzle.template
+package com.puzzle.material
 
 /**
  * 用于保存整个拼图模板的数据

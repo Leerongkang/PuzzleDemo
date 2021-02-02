@@ -9,8 +9,8 @@ import android.view.ViewGroup
 import android.widget.ImageView.ScaleType
 import com.puzzle.R
 import com.puzzle.dp2px
-import com.puzzle.template.Template
-import com.puzzle.template.TemplateInfo
+import com.puzzle.material.Template
+import com.puzzle.material.TemplateInfo
 import kotlin.math.abs
 import kotlin.math.roundToInt
 

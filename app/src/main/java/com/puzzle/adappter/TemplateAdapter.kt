@@ -60,7 +60,7 @@ class TemplateAdapter(
  * TemplateAdapter 对应的 ViewHolder
  */
 class TemplateViewHolder(val rootView: View) : RecyclerView.ViewHolder(rootView) {
-    val imageView: ImageView = itemView.findViewById(R.id.templateItemImage)
+    val imageView: ImageView = rootView.findViewById(R.id.templateItemImage)
 }
 
 typealias OnTemplateSelectListener = (adapter: TemplateAdapter, holder: TemplateViewHolder) -> Unit

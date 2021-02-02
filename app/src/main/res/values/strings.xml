@@ -34,4 +34,6 @@
     <string name="template_path_suffix_pressed">/thumbnail_pressed</string>
     <string name="save_success">保存成功</string>
     <string name="replace_image_view">replaceImageView</string>
+    <string name="more_material">更多素材</string>
+    <string name="material">Material</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.puzzle.ui
 
+import Material
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
@@ -20,14 +21,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.puzzle.R
+import com.puzzle.adappter.MaterialAdapter
 import com.puzzle.adappter.TemplateAdapter
 import com.puzzle.dp2px
-import com.puzzle.template.Template
-import com.puzzle.template.TemplateData
+import com.puzzle.material.MaterialRepository
+import com.puzzle.material.Template
+import com.puzzle.material.TemplateData
 import com.puzzle.ui.view.PuzzleImageView
 import com.puzzle.ui.view.PuzzleLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.layout_image_replace.view.*
+import kotlinx.android.synthetic.main.layout_material.view.*
 import kotlinx.android.synthetic.main.layout_template.view.*
 import kotlinx.android.synthetic.main.layout_title.*
 import kotlinx.android.synthetic.main.layout_title.view.*
@@ -65,6 +69,12 @@ class MainActivity : BaseActivity() {
     private val showUpdateGroup: Boolean
         get() = imageUpdateGroup?.alpha == 1F
 
+    private val showTemplatePuzzleGroup: Boolean
+        get() = templateGroup?.templatePuzzleGroup?.visibility == View.VISIBLE
+
+    private val showMaterialPuzzleGroup: Boolean
+        get() = templateGroup?.materialPuzzleGroup?.visibility == View.VISIBLE
+
     // 防止模板部分的 TabLayout 与 RecyclerView 联动时，滚动冲突
     private var shouldUpdateTabLayout = false
 
@@ -78,6 +88,10 @@ class MainActivity : BaseActivity() {
 
     // 输入图片解析后的Bitmap
     private val bitmapList = mutableListOf<Bitmap>()
+
+    private val freeMaterials = mutableListOf<Material>()
+    private val posterMaterials = mutableListOf<Material>()
+    private val spliceMaterials = mutableListOf<Material>()
 
     // 用于模板联动的数据结构
     private val template2CategoryMap = mutableMapOf<Int, Int>()
@@ -231,15 +245,31 @@ class MainActivity : BaseActivity() {
 
     private suspend fun initViews() {
         initTitleBar()
-        initTemplateViewGroup()
         initBottomTabLayout()
+        initTemplateViewGroup()
         initImageUpdateGroup()
     }
+
 
     private suspend fun initTemplateViewGroup() {
         initTemplateRecyclerView()
         initTemplateTabLayout()
         initFrameModeView()
+        initMaterialGroup()
+    }
+
+    private suspend fun initMaterialGroup() {
+        loadMaterialData()
+        templateGroup.materialPuzzleGroup.materialRecyclerView.apply {
+            adapter = MaterialAdapter(posterMaterials) { _, _ -> }
+            layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
+        }
+    }
+
+    private suspend fun loadMaterialData() {
+        posterMaterials.addAll(MaterialRepository.getPosterMaterials())
+        spliceMaterials.addAll(MaterialRepository.getSpliceMaterials())
+        freeMaterials.addAll(MaterialRepository.getFreeMaterials())
     }
 
     private fun initFrameModeView() {
@@ -252,14 +282,14 @@ class MainActivity : BaseActivity() {
                 frameIconSize.dp2px()
             )
         }
-        templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
-        templateGroup.frameTextView.setOnClickListener {
+        templateGroup.templatePuzzleGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
+        templateGroup.templatePuzzleGroup.frameTextView.setOnClickListener {
             updateFrameMode()
         }
     }
 
     private fun initTemplateTabLayout() {
-        templateGroup.templateTabLayout.apply {
+        templateGroup.templatePuzzleGroup.templateTabLayout.apply {
             if (fistTemplateInCategoryMap[TemplateData.template34] != null) {
                 addTab(newTab().setIcon(R.drawable.meitu_puzzle_temp_34))
             }
@@ -282,7 +312,7 @@ class MainActivity : BaseActivity() {
                 override fun onTabSelected(tab: TabLayout.Tab) {
                     shouldUpdateTabLayout = false
                     val categoryPos = (tab.position)
-                    templateGroup.templateRecyclerView.smoothScrollToPosition(
+                    templateGroup.templatePuzzleGroup.templateRecyclerView.smoothScrollToPosition(
                         fistTemplateInCategoryMap[categoryPos] ?: 0
                     )
                 }
@@ -294,13 +324,13 @@ class MainActivity : BaseActivity() {
     }
 
     private suspend fun initTemplateRecyclerView() {
-        templateGroup.templateRecyclerView.adapter = TemplateAdapter(
+        templateGroup.templatePuzzleGroup.templateRecyclerView.adapter = TemplateAdapter(
             TemplateData.allTemplateThumbnailPathWithNum(selectNum, this)
         ) { adapter, holder ->
             if (!puzzleViewInit) {
                 return@TemplateAdapter
             }
-            templateGroup.templateTabLayout.setScrollPosition(
+            templateGroup.templatePuzzleGroup.templateTabLayout.setScrollPosition(
                 template2CategoryMap[holder.adapterPosition] ?: 0,
                 0f,
                 false
@@ -316,19 +346,19 @@ class MainActivity : BaseActivity() {
             resizePuzzleLayout()
             puzzleLayout.requestLayout()
         }
-        templateGroup.templateRecyclerView.layoutManager = templateRecyclerViewLayoutManager
-        templateGroup.templateRecyclerView.setOnScrollChangeListener { _, _, _, _, _ ->
+        templateGroup.templatePuzzleGroup.templateRecyclerView.layoutManager = templateRecyclerViewLayoutManager
+        templateGroup.templatePuzzleGroup.templateRecyclerView.setOnScrollChangeListener { _, _, _, _, _ ->
             if (shouldUpdateTabLayout) {
                 val lastPos =
                     templateRecyclerViewLayoutManager.findLastVisibleItemPosition()
                 val firstPos =
                     templateRecyclerViewLayoutManager.findFirstVisibleItemPosition()
                 if (lastPos == allTemplates.size - 1) {
-                    templateGroup.templateTabLayout.setScrollPosition(
-                        templateGroup.templateTabLayout.tabCount - 1, 0F, false
+                    templateGroup.templatePuzzleGroup.templateTabLayout.setScrollPosition(
+                        templateGroup.templatePuzzleGroup.templateTabLayout.tabCount - 1, 0F, false
                     )
                 } else if (firstPos == 0) {
-                    templateGroup.templateTabLayout.setScrollPosition(
+                    templateGroup.templatePuzzleGroup.templateTabLayout.setScrollPosition(
                         firstPos, 0F, false
                     )
                 }
@@ -355,6 +385,44 @@ class MainActivity : BaseActivity() {
             addTab(newTab().setText(context.getString(R.string.splice)))
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
+                    if (tab.position == 0) {
+                        if (!showTemplatePuzzleGroup) {
+                            templateGroup.templatePuzzleGroup.visibility = View.VISIBLE
+                            templateGroup.materialPuzzleGroup.visibility = View.GONE
+                            val translationSet = motionLayout.getConstraintSet(R.id.end)
+                            translationSet.setTranslationY(R.id.templateGroup, 160.dp2px().toFloat())
+                            translationSet.setTranslationY(R.id.showImageView, 160.dp2px().toFloat())
+                            translationSet.setTranslationY(R.id.closeImageView, 160.dp2px().toFloat())
+                            motionLayout.updateState(R.id.end, translationSet)
+                        }
+                    } else {
+                        if (!showMaterialPuzzleGroup) {
+                            val translationSet = motionLayout.getConstraintSet(R.id.end)
+                            templateGroup.templatePuzzleGroup.visibility = View.GONE
+                            templateGroup.materialPuzzleGroup.visibility = View.VISIBLE
+                            translationSet.setTranslationY(R.id.templateGroup, 120.dp2px().toFloat())
+                            translationSet.setTranslationY(R.id.showImageView, 120.dp2px().toFloat())
+                            translationSet.setTranslationY(R.id.closeImageView, 120.dp2px().toFloat())
+                            motionLayout.updateState(R.id.end, translationSet)
+                        }
+                        val adapter =
+                            templateGroup.materialPuzzleGroup.materialRecyclerView.adapter ?: return
+                        if (adapter !is MaterialAdapter) {
+                            return
+                        }
+                        when (tab.position) {
+                            1 -> {
+                                adapter.materialList = posterMaterials
+                            }
+                            2 -> {
+                                adapter.materialList = freeMaterials
+                            }
+                            3 -> {
+                                adapter.materialList = spliceMaterials
+                            }
+                        }
+                        adapter.notifyDataSetChanged()
+                    }
                     if (!showTemplateGroup) {
                         showImageView.performClick()
                     }
@@ -566,7 +634,7 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        templateGroup.frameTextView.text = currentFrameMode.second
+        templateGroup.templatePuzzleGroup.frameTextView.text = currentFrameMode.second
         val drawable = ContextCompat.getDrawable(
             this@MainActivity,
             currentFrameMode.first
@@ -578,6 +646,6 @@ class MainActivity : BaseActivity() {
                 frameIconSize.dp2px()
             )
         }
-        templateGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
+        templateGroup.templatePuzzleGroup.frameTextView.setCompoundDrawables(null, drawable, null, null)
     }
 }

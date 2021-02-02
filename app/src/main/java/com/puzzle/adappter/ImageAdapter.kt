@@ -61,7 +61,7 @@ class ImageAdapter(
  * ImageAdapter 对应的 ViewHolder
  */
 class ImageViewHolder(rootView: View) : RecyclerView.ViewHolder(rootView) {
-    val imageView: ImageView = itemView.findViewById(R.id.itemImageView)
+    val imageView: ImageView = rootView.findViewById(R.id.itemImageView)
 }
 
 typealias OnImageSelectedListener = (adapter: ImageAdapter, position: Int) -> Unit
