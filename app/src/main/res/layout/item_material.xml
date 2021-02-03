@@ -2,33 +2,34 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_marginEnd="10dp"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="10dp">
 
-    <ImageView
+    <androidx.constraintlayout.utils.widget.ImageFilterView
         android:id="@+id/materialThumbnailImageView"
         android:layout_width="70dp"
         android:layout_height="105dp"
+        android:background="#f2f2f2"
+        android:contentDescription="@string/material"
         android:scaleType="centerInside"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@tools:sample/avatars"
-        android:contentDescription="@string/material"
-        android:background="#f2f2f2"/>
+        app:round="0.1dp"
+        tools:src="@tools:sample/avatars" />
 
     <ImageView
         android:id="@+id/videoIconImageView"
         android:layout_width="18dp"
         android:layout_height="15dp"
         android:layout_margin="5dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:contentDescription="@string/material"
         android:scaleType="fitXY"
         android:src="@drawable/puzzle__video_mark"
-        android:contentDescription="@string/material" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/downloadIconImageView"
@@ -43,8 +44,8 @@
         android:id="@+id/newIconImageView"
         android:layout_width="15dp"
         android:layout_height="15dp"
-        android:padding="5dp"
         android:contentDescription="@string/material"
+        android:padding="5dp"
         android:src="@drawable/puzzle__new_material"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/downloadIconImageView" />

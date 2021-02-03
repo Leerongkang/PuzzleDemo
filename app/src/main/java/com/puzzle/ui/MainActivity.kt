@@ -36,6 +36,7 @@ import kotlinx.android.synthetic.main.layout_template.view.*
 import kotlinx.android.synthetic.main.layout_title.*
 import kotlinx.android.synthetic.main.layout_title.view.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.roundToInt
@@ -71,9 +72,6 @@ class MainActivity : BaseActivity() {
 
     private val showTemplatePuzzleGroup: Boolean
         get() = templateGroup?.templatePuzzleGroup?.visibility == View.VISIBLE
-
-    private val showMaterialPuzzleGroup: Boolean
-        get() = templateGroup?.materialPuzzleGroup?.visibility == View.VISIBLE
 
     // 防止模板部分的 TabLayout 与 RecyclerView 联动时，滚动冲突
     private var shouldUpdateTabLayout = false
@@ -246,8 +244,8 @@ class MainActivity : BaseActivity() {
     private suspend fun initViews() {
         initTitleBar()
         initBottomTabLayout()
-        initTemplateViewGroup()
         initImageUpdateGroup()
+        initTemplateViewGroup()
     }
 
 
@@ -266,10 +264,13 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private suspend fun loadMaterialData() {
-        posterMaterials.addAll(MaterialRepository.getPosterMaterials())
-        spliceMaterials.addAll(MaterialRepository.getSpliceMaterials())
-        freeMaterials.addAll(MaterialRepository.getFreeMaterials())
+    private suspend fun loadMaterialData() = withContext(Dispatchers.IO) {
+        val poster = async { MaterialRepository.getPosterMaterials() }
+        val splice = async { MaterialRepository.getSpliceMaterials() }
+        val free = async { MaterialRepository.getFreeMaterials() }
+        posterMaterials.addAll(poster.await())
+        spliceMaterials.addAll(splice.await())
+        freeMaterials.addAll(free.await())
     }
 
     private fun initFrameModeView() {
@@ -385,26 +386,22 @@ class MainActivity : BaseActivity() {
             addTab(newTab().setText(context.getString(R.string.splice)))
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
-                    if (tab.position == 0) {
-                        if (!showTemplatePuzzleGroup) {
-                            templateGroup.templatePuzzleGroup.visibility = View.VISIBLE
-                            templateGroup.materialPuzzleGroup.visibility = View.GONE
-                            val translationSet = motionLayout.getConstraintSet(R.id.end)
-                            translationSet.setTranslationY(R.id.templateGroup, 160.dp2px().toFloat())
-                            translationSet.setTranslationY(R.id.showImageView, 160.dp2px().toFloat())
-                            translationSet.setTranslationY(R.id.closeImageView, 160.dp2px().toFloat())
-                            motionLayout.updateState(R.id.end, translationSet)
-                        }
+                    if (tab.position == 0 && !showTemplatePuzzleGroup) {
+                        templateGroup.templatePuzzleGroup.visibility = View.VISIBLE
+                        templateGroup.materialPuzzleGroup.visibility = View.GONE
+                        val translationSet = motionLayout.getConstraintSet(R.id.end)
+                        translationSet.setTranslationY(R.id.templateGroup, 160.dp2px().toFloat())
+                        translationSet.setTranslationY(R.id.showImageView, 160.dp2px().toFloat())
+                        translationSet.setTranslationY(R.id.closeImageView, 160.dp2px().toFloat())
+                        motionLayout.updateState(R.id.end, translationSet)
                     } else {
-                        if (!showMaterialPuzzleGroup) {
-                            val translationSet = motionLayout.getConstraintSet(R.id.end)
-                            templateGroup.templatePuzzleGroup.visibility = View.GONE
-                            templateGroup.materialPuzzleGroup.visibility = View.VISIBLE
-                            translationSet.setTranslationY(R.id.templateGroup, 120.dp2px().toFloat())
-                            translationSet.setTranslationY(R.id.showImageView, 120.dp2px().toFloat())
-                            translationSet.setTranslationY(R.id.closeImageView, 120.dp2px().toFloat())
-                            motionLayout.updateState(R.id.end, translationSet)
-                        }
+                        val translationSet = motionLayout.getConstraintSet(R.id.end)
+                        templateGroup.templatePuzzleGroup.visibility = View.GONE
+                        templateGroup.materialPuzzleGroup.visibility = View.VISIBLE
+                        translationSet.setTranslationY(R.id.templateGroup, 120.dp2px().toFloat())
+                        translationSet.setTranslationY(R.id.showImageView, 120.dp2px().toFloat())
+                        translationSet.setTranslationY(R.id.closeImageView, 120.dp2px().toFloat())
+                        motionLayout.updateState(R.id.end, translationSet)
                         val adapter =
                             templateGroup.materialPuzzleGroup.materialRecyclerView.adapter ?: return
                         if (adapter !is MaterialAdapter) {

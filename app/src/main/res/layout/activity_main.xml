@@ -96,16 +96,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:visibility="invisible"/>
+        tools:visibility="invisible" />
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/loadingAnimateView"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:alpha="0"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:lottie_rawRes="@raw/loading_loop_round"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:lottie_rawRes="@raw/loading_loop_round" />
 
 </androidx.constraintlayout.motion.widget.MotionLayout>
