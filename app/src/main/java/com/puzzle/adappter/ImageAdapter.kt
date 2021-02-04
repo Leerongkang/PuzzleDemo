@@ -35,9 +35,8 @@ class ImageAdapter(
                          }
         val layoutInflater = LayoutInflater.from(parent.context)
         val itemView = layoutInflater.inflate(resId, parent, false)
-        val viewHolder = ImageViewHolder(itemView).apply {
-            imageView.setOnClickListener(this@ImageAdapter)
-        }
+        val viewHolder = ImageViewHolder(itemView)
+        viewHolder.imageView.setOnClickListener(this@ImageAdapter)
         return viewHolder
     }
 

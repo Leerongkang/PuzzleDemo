@@ -1,5 +1,7 @@
 package com.puzzle.ui
 
+import DOWNLOAD_STATE_DOWNLOADED
+import DOWNLOAD_STATE_DOWNLOADING
 import Material
 import android.content.ContentValues
 import android.content.Intent
@@ -22,11 +24,17 @@ import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.puzzle.R
 import com.puzzle.adappter.MaterialAdapter
+import com.puzzle.adappter.MaterialViewHolder
 import com.puzzle.adappter.TemplateAdapter
+import com.puzzle.download
 import com.puzzle.dp2px
 import com.puzzle.material.MaterialRepository
 import com.puzzle.material.Template
 import com.puzzle.material.TemplateData
+import com.puzzle.network.DownloadServiceCreator
+import com.puzzle.network.MATERIAL_DOWNLOAD_BASE_URL
+import com.puzzle.network.MaterialDownloadService
+import com.puzzle.parsePathFileName
 import com.puzzle.ui.view.PuzzleImageView
 import com.puzzle.ui.view.PuzzleLayout
 import kotlinx.android.synthetic.main.activity_main.*
@@ -53,14 +61,20 @@ class MainActivity : BaseActivity() {
     // 边框图片尺寸
     private val frameIconSize = 40
 
-    // 图片单次旋转的角度
-    private val rotateAngle = 90F
-
     // 单张图片替换时，该 View 的下标
     private var selectedImageIndex = -1
 
     // 输入图片数量，使用 Intent 传入
     private var selectNum = 1
+
+    // 图片单次旋转的角度
+    private val rotateAngle = 90F
+
+    // 选中模板拼图时，工具栏的高度，用于修改动画属性
+    private val templateAnimationHeight = 160.dp2px().toFloat()
+
+    // 选中海报、自由、拼接时，工具栏的高度，用于修改动画属性
+    private val materialAnimationHeight = 120.dp2px().toFloat()
 
     // 模板选择部分，是否隐藏标志位
     private val showTemplateGroup: Boolean
@@ -87,8 +101,13 @@ class MainActivity : BaseActivity() {
     // 输入图片解析后的Bitmap
     private val bitmapList = mutableListOf<Bitmap>()
 
-    private val freeMaterials = mutableListOf<Material>()
+    // 海报素材
     private val posterMaterials = mutableListOf<Material>()
+
+    // 自由素材
+    private val freeMaterials = mutableListOf<Material>()
+
+    // 拼接素材
     private val spliceMaterials = mutableListOf<Material>()
 
     // 用于模板联动的数据结构
@@ -150,95 +169,31 @@ class MainActivity : BaseActivity() {
     private fun initWithCoroutines() {
         loadingAnimateView.repeatCount = -1
         launch {
-            playLoadingAnimation()
             loadTemplateData()
+            initPuzzleLayout()
             initViews()
-            val bitmaps = decodeBitmaps()
-            puzzleLayout.template = allTemplates[0]
-            puzzleLayout.initViews(bitmaps, allTemplates[0].imageCount)
-            puzzleLayout.onHideUtilsListener = {
-                if (showUpdateGroup) {
-                    imageUpdateGroup.closeClickImageView.performClick()
-                    selectedImageIndex = -1
-                }
-                if (showTemplateGroup) {
-                    showImageView.performClick()
-                }
+        }
+    }
+
+    private suspend fun initPuzzleLayout() {
+        playLoadingAnimation()
+        val bitmaps = decodeBitmaps()
+        puzzleLayout.template = allTemplates[0]
+        puzzleLayout.initViews(bitmaps, allTemplates[0].imageCount)
+        puzzleLayout.onHideUtilsListener = {
+            if (showUpdateGroup) {
+                imageUpdateGroup.closeClickImageView.performClick()
+                selectedImageIndex = -1
             }
-            puzzleContainer.post {
-                resizePuzzleLayout()
-                puzzleViewInit = true
+            if (showTemplateGroup) {
+                showImageView.performClick()
             }
-            pauseLoadingAnimation()
         }
-    }
-
-    /**
-     * 加载输入图片数量为[selectNum]的模板数据
-     */
-    private suspend fun loadTemplateData() {
-        template2CategoryMap.putAll(TemplateData.templateInCategory(selectNum, this))
-        fistTemplateInCategoryMap.putAll(TemplateData.templateCategoryFirst(selectNum, this))
-        allTemplates.addAll(TemplateData.allTemplateWithNum(selectNum, this))
-    }
-
-    /**
-     * 根据屏幕宽高计算拼图的大小
-     */
-    private fun resizePuzzleLayout() {
-        // 获取父容器宽高
-        val containerWidth = puzzleContainer.width
-        val containerHeight = puzzleContainer.height
-        // 获取当前选中模板宽高
-        val templateWidth = puzzleLayout.template.totalWidth
-        val templateHeight = puzzleLayout.template.totalHeight
-        // 默认使用父容器的宽度作为拼图高度
-        var finalWidth = containerWidth
-        // 通过模板宽度与父容器宽度比例计算拼图高度
-        var finalHeight =
-            (templateHeight * (containerWidth / templateWidth.toDouble())).roundToInt()
-        // 如果计算得出的拼图高度大于父容器高度，则使用父容器高度计算比例，再求拼图宽度
-        if (finalHeight > containerHeight) {
-            finalHeight = containerHeight
-            finalWidth = (templateWidth * (containerHeight / templateHeight.toDouble())).roundToInt()
+        puzzleContainer.post {
+            resizePuzzleLayout()
+            puzzleViewInit = true
         }
-        // 设置缩放比例
-        puzzleLayout.proportion = finalHeight / templateHeight.toDouble()
-        // 父容器为 FrameLayout，因此可以将 puzzleLayout 居中
-        puzzleLayout.layoutParams =
-            FrameLayout.LayoutParams(finalWidth, finalHeight, Gravity.CENTER)
-    }
-
-    /**
-     * 使用[Glide] 加载 [images] 中的图片路径，并添加到 [bitmapList] 中。
-     */
-    private suspend fun decodeBitmaps() = withContext(Dispatchers.IO) {
-        val bitmaps = mutableListOf<Bitmap>()
-        images.forEach {
-            val decodeBitmap: Bitmap =
-                Glide.with(this@MainActivity)
-                     .asBitmap()
-                     .override(1080)
-                     .load("file://$it")
-                     .submit()
-                     .get()
-            bitmaps.add(decodeBitmap)
-        }
-        bitmapList.clear()
-        bitmapList.addAll(bitmaps)
-        bitmaps
-    }
-
-    /**
-     * 使用 [Glide] 加载单张图片
-     */
-    private suspend fun decodeBitmap(path: String) = withContext(Dispatchers.IO) {
-        Glide.with(this@MainActivity)
-            .asBitmap()
-            .override(1080)
-            .load("file://$path")
-            .submit()
-            .get()
+        pauseLoadingAnimation()
     }
 
     private suspend fun initViews() {
@@ -248,7 +203,6 @@ class MainActivity : BaseActivity() {
         initTemplateViewGroup()
     }
 
-
     private suspend fun initTemplateViewGroup() {
         initTemplateRecyclerView()
         initTemplateTabLayout()
@@ -256,21 +210,21 @@ class MainActivity : BaseActivity() {
         initMaterialGroup()
     }
 
+
     private suspend fun initMaterialGroup() {
         loadMaterialData()
         templateGroup.materialPuzzleGroup.materialRecyclerView.apply {
-            adapter = MaterialAdapter(posterMaterials) { _, _ -> }
+            adapter = MaterialAdapter(posterMaterials) { adapter, holder ->
+                launch {
+                    val position = holder.layoutPosition
+                    val material = adapter.materialList[position]
+                    val zipUrl = material.zipUrl
+                    showToast("素材ID：${material.materialId}")
+                    downloadMaterial(zipUrl, holder, material)
+                }
+            }
             layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
         }
-    }
-
-    private suspend fun loadMaterialData() = withContext(Dispatchers.IO) {
-        val poster = async { MaterialRepository.getPosterMaterials() }
-        val splice = async { MaterialRepository.getSpliceMaterials() }
-        val free = async { MaterialRepository.getFreeMaterials() }
-        posterMaterials.addAll(poster.await())
-        spliceMaterials.addAll(splice.await())
-        freeMaterials.addAll(free.await())
     }
 
     private fun initFrameModeView() {
@@ -390,17 +344,17 @@ class MainActivity : BaseActivity() {
                         templateGroup.templatePuzzleGroup.visibility = View.VISIBLE
                         templateGroup.materialPuzzleGroup.visibility = View.GONE
                         val translationSet = motionLayout.getConstraintSet(R.id.end)
-                        translationSet.setTranslationY(R.id.templateGroup, 160.dp2px().toFloat())
-                        translationSet.setTranslationY(R.id.showImageView, 160.dp2px().toFloat())
-                        translationSet.setTranslationY(R.id.closeImageView, 160.dp2px().toFloat())
+                        translationSet.setTranslationY(R.id.templateGroup, templateAnimationHeight)
+                        translationSet.setTranslationY(R.id.showImageView, templateAnimationHeight)
+                        translationSet.setTranslationY(R.id.closeImageView, templateAnimationHeight)
                         motionLayout.updateState(R.id.end, translationSet)
                     } else {
                         val translationSet = motionLayout.getConstraintSet(R.id.end)
                         templateGroup.templatePuzzleGroup.visibility = View.GONE
                         templateGroup.materialPuzzleGroup.visibility = View.VISIBLE
-                        translationSet.setTranslationY(R.id.templateGroup, 120.dp2px().toFloat())
-                        translationSet.setTranslationY(R.id.showImageView, 120.dp2px().toFloat())
-                        translationSet.setTranslationY(R.id.closeImageView, 120.dp2px().toFloat())
+                        translationSet.setTranslationY(R.id.templateGroup, materialAnimationHeight)
+                        translationSet.setTranslationY(R.id.showImageView, materialAnimationHeight)
+                        translationSet.setTranslationY(R.id.closeImageView, materialAnimationHeight)
                         motionLayout.updateState(R.id.end, translationSet)
                         val adapter =
                             templateGroup.materialPuzzleGroup.materialRecyclerView.adapter ?: return
@@ -515,6 +469,85 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    /**
+     * 根据屏幕宽高计算拼图的大小
+     */
+    private fun resizePuzzleLayout() {
+        // 获取父容器宽高
+        val containerWidth = puzzleContainer.width
+        val containerHeight = puzzleContainer.height
+        // 获取当前选中模板宽高
+        val templateWidth = puzzleLayout.template.totalWidth
+        val templateHeight = puzzleLayout.template.totalHeight
+        // 默认使用父容器的宽度作为拼图高度
+        var finalWidth = containerWidth
+        // 通过模板宽度与父容器宽度比例计算拼图高度
+        var finalHeight =
+            (templateHeight * (containerWidth / templateWidth.toDouble())).roundToInt()
+        // 如果计算得出的拼图高度大于父容器高度，则使用父容器高度计算比例，再求拼图宽度
+        if (finalHeight > containerHeight) {
+            finalHeight = containerHeight
+            finalWidth = (templateWidth * (containerHeight / templateHeight.toDouble())).roundToInt()
+        }
+        // 设置缩放比例
+        puzzleLayout.proportion = finalHeight / templateHeight.toDouble()
+        // 父容器为 FrameLayout，因此可以将 puzzleLayout 居中
+        puzzleLayout.layoutParams = FrameLayout.LayoutParams(finalWidth, finalHeight, Gravity.CENTER)
+    }
+
+    /**
+     * 加载输入图片数量为[selectNum]的模板数据
+     */
+    private suspend fun loadTemplateData() {
+        template2CategoryMap.putAll(TemplateData.templateInCategory(selectNum, this))
+        fistTemplateInCategoryMap.putAll(TemplateData.templateCategoryFirst(selectNum, this))
+        allTemplates.addAll(TemplateData.allTemplateWithNum(selectNum, this))
+    }
+
+    /**
+     * 并发获取素材
+     */
+    private suspend fun loadMaterialData() = withContext(Dispatchers.IO) {
+        val poster = async { MaterialRepository.getNetWorkPosterMaterials(selectNum) }
+        val splice = async { MaterialRepository.getNetWorkSpliceMaterials() }
+        val free = async { MaterialRepository.getNetWorkFreeMaterials() }
+        posterMaterials.addAll(poster.await())
+        spliceMaterials.addAll(splice.await())
+        freeMaterials.addAll(free.await())
+    }
+
+    /**
+     * 使用[Glide] 加载 [images] 中的图片路径，并添加到 [bitmapList] 中。
+     */
+    private suspend fun decodeBitmaps() = withContext(Dispatchers.IO) {
+        val bitmaps = mutableListOf<Bitmap>()
+        images.forEach {
+            val decodeBitmap: Bitmap =
+                Glide.with(this@MainActivity)
+                    .asBitmap()
+                    .override(1080)
+                    .load("file://$it")
+                    .submit()
+                    .get()
+            bitmaps.add(decodeBitmap)
+        }
+        bitmapList.clear()
+        bitmapList.addAll(bitmaps)
+        bitmaps
+    }
+
+    /**
+     * 使用 [Glide] 加载单张图片
+     */
+    private suspend fun decodeBitmap(path: String) = withContext(Dispatchers.IO) {
+        Glide.with(this@MainActivity)
+            .asBitmap()
+            .override(1080)
+            .load("file://$path")
+            .submit()
+            .get()
+    }
+
     private fun saveBitmap(view: View, fileName: String) {
         launch {
             playLoadingAnimation()
@@ -529,6 +562,51 @@ class MainActivity : BaseActivity() {
             }
             pauseLoadingAnimation()
         }
+    }
+
+    private suspend fun downloadMaterial(path: String, holder: MaterialViewHolder, material: Material) {
+        // 下载路径为空，取消下载
+        if(TextUtils.isEmpty(path)) {
+            return
+        }
+        // 当前素材正在下载
+        if (material.beDownload == DOWNLOAD_STATE_DOWNLOADING) {
+            return
+        }
+        // 当前素材已经下载完成
+        if (material.beDownload == DOWNLOAD_STATE_DOWNLOADED) {
+            return
+        }
+        // 下载素材
+        material.beDownload = DOWNLOAD_STATE_DOWNLOADING
+        val materialDownloadService = DownloadServiceCreator.create<MaterialDownloadService>()
+        // 去掉下载链接中的 [MATERIAL_DOWNLOAD_BASE_URL]
+        val fixPath = path.replace(MATERIAL_DOWNLOAD_BASE_URL,"")
+        // 开始下载
+        val responseBody = materialDownloadService.downloadMaterialZip(path)
+        // 下载目录为 /data/data/com.puzzle/files/material
+        val dir = File(filesDir, getString(R.string.material_file_name))
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+        // 解析文件名，并创建文件
+        val fileName = fixPath.parsePathFileName()
+        val file = File(dir, fileName)
+        // 删除已存在文件
+        if (file.exists()) {
+            file.delete()
+        }
+        // 更新UI
+        holder.downloadProgressView.visibility = View.VISIBLE
+        holder.downloadIconImageView.visibility = View.INVISIBLE
+        // 下载并写入文件，并更新进度
+        file.download(responseBody){
+            material.downloadProgress = it
+            holder.downloadProgressView.progress = it.toFloat()
+        }
+        // 下载完成
+        material.beDownload = DOWNLOAD_STATE_DOWNLOADED
+//        showToast("下载完成：$fileName")
     }
 
     /**
@@ -563,7 +641,6 @@ class MainActivity : BaseActivity() {
     /**
      * 将拼图保存到本地。
      * Android Q 版本以上插入[MediaStore]后再保存，否则先保存到本地，再发送广播通知图库更新
-     *
      */
     private suspend fun saveLocal(fileName: String, bitmap: Bitmap): Uri =
         withContext(Dispatchers.IO) {

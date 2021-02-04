@@ -30,22 +30,21 @@ class TemplateAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TemplateViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val itemView = layoutInflater.inflate(R.layout.item_templte, parent, false)
-        val templateViewHolder = TemplateViewHolder(itemView).apply {
-            rootView.setOnClickListener(this@TemplateAdapter)
-        }
+        val templateViewHolder = TemplateViewHolder(itemView)
+        templateViewHolder.imageView.setOnClickListener(this@TemplateAdapter)
         return templateViewHolder
     }
 
     override fun onBindViewHolder(holder: TemplateViewHolder, position: Int) {
+        holder.imageView.tag = holder       // 通过 tag，绑定点击
         val context = holder.imageView.context
         val prefix = context.getString(R.string.template_path_prefix)
         val path: String = if (position == currentSelectPos) {
-                                "$prefix${templateList[position]}${context.getString(R.string.template_path_suffix_pressed)}"
-                            } else {
-                                "$prefix${templateList[position]}${context.getString(R.string.template_path_suffix)}"
-                            }
+            "$prefix${templateList[position]}${context.getString(R.string.template_path_suffix_pressed)}"
+        } else {
+            "$prefix${templateList[position]}${context.getString(R.string.template_path_suffix)}"
+        }
         Glide.with(holder.imageView.context).load("file:///android_asset/$path").into(holder.imageView)
-        holder.rootView.tag = holder       // 通过 tag，绑定点击
     }
 
     override fun getItemCount(): Int = templateList.size

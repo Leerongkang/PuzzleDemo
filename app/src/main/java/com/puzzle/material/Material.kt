@@ -1,5 +1,12 @@
 import com.google.gson.annotations.SerializedName
 
+/**
+ * 素材下载状态
+ */
+const val DOWNLOAD_STATE_NOT_DOWNLOAD  = 0      // 未下载
+const val DOWNLOAD_STATE_DOWNLOADING = -1       // 下载中
+const val DOWNLOAD_STATE_DOWNLOADED = -2        // 下载完成
+
 data class Response(
     val data: Data,
     val error: String = "",
@@ -9,18 +16,27 @@ data class Response(
     val ret: Int = 0
 )
 
+/**
+ * 素材数据包
+ */
 data class Data(
     val items: CategoryGroup,
     @SerializedName("next_cursor")
     val nextCursor: String = ""
 )
 
+/**
+ * 素材一级分类
+ */
 data class CategoryGroup(
     val categories: List<Category> = emptyList(),
     val id: Int = 0,
     val name: String = ""
 )
 
+/**
+ * 素材二级分类
+ */
 data class Category(
     @SerializedName("category_id")
     val categoryId: Int = 0,
@@ -31,6 +47,9 @@ data class Category(
     val updatedAt: Long = 0L
 )
 
+/**
+ * 素材三级分类
+ */
 data class SubCategory(
     @SerializedName("end_time")
     val endTime: Long = 0L,
@@ -48,7 +67,12 @@ data class SubCategory(
     val updatedAt: Long = 0
 )
 
+/**
+ * 素材
+ */
 data class Material(
+    @SerializedName("material_id")
+    val materialId: Long = 0,
     @SerializedName("background_img")
     val backgroundImg: String = "",
     @SerializedName("bgColor")
@@ -75,8 +99,6 @@ data class Material(
     val jumpBuyIcon: String = "",
     @SerializedName("material_feature")
     val materialFeature: Int = 0,
-    @SerializedName("material_id")
-    val materialId: Long,
     @SerializedName("max_version")
     val maxVersion: String = "",
     @SerializedName("min_version")
@@ -107,9 +129,16 @@ data class Material(
     @SerializedName("zip_url")
     val zipUrl: String = "",
     @SerializedName("zip_ver")
-    val zipVer: Int = 0
+    val zipVer: Int = 0,
+//  素材下载进度（新增）
+    var downloadProgress: Int = 0,
+//  素材下载状态（新增）
+    var beDownload: Int = DOWNLOAD_STATE_NOT_DOWNLOAD
 )
 
+/**
+ * 素材额外信息
+ */
 data class ExtraInfo(
     @SerializedName("is_choose_color")
     val beChooseColor: Int = 0,

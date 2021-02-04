@@ -3,17 +3,18 @@ package com.puzzle.network
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-/**
- * 在线素材获取 Retrofit 单例
- */
-object NetworkServiceCreator {
+// 素材下载前缀
+const val MATERIAL_DOWNLOAD_BASE_URL = "https://xx"
 
-    private const val BASE_URL = "https://tool.xiuxiu.meitu.com/v1/tool/material/"
+/**
+ * 素材下载 Retrofit 创建单例
+ */
+object DownloadServiceCreator {
 
     private val retrofit = Retrofit.Builder()
-        .baseUrl(BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
+                                   .addConverterFactory(GsonConverterFactory.create())
+                                   .baseUrl(MATERIAL_DOWNLOAD_BASE_URL)
+                                   .build()
 
     fun <T> create(serviceClass: Class<T>): T = retrofit.create(serviceClass)
 

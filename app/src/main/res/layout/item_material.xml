@@ -49,4 +49,11 @@
         android:src="@drawable/puzzle__new_material"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/downloadIconImageView" />
+
+    <com.puzzle.ui.view.ProgressView
+        android:id="@+id/downloadProgressView"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

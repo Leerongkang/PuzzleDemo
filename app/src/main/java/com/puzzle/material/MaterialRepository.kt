@@ -1,39 +1,87 @@
 package com.puzzle.material
 
+import DOWNLOAD_STATE_DOWNLOADED
+import ExtraInfo
 import Material
 import Response
 import com.puzzle.network.MaterialNetworkService
 import com.puzzle.network.NetworkServiceCreator
 
+/**
+ * 素材仓库，用于获取本地和网络素材
+ */
 object MaterialRepository {
 
     private val materialNetworkService = NetworkServiceCreator.create<MaterialNetworkService>()
 
-    suspend fun getPosterMaterials(): List<Material> {
+    // 内置素材图片路径前缀
+    private const val assetFilePath = "file:///android_asset/material"
+
+    /**
+     * 通过网络获取海报分类下的素材
+     * @param imageCount 输入图片数量
+     */
+    suspend fun getNetWorkPosterMaterials(imageCount: Int): List<Material> {
         val posterResponse = materialNetworkService.getPosterMaterials()
-        return getResponseMaterials(posterResponse)
+        val posterMaterials = getResponseMaterials(posterResponse)
+        // 内置素材，海报分类下内置素材因输入图片数量而不同
+        val innerMaterial = Material(
+            thumbnailUrl = "$assetFilePath/poster/$imageCount/thumbnail",
+            materialId = 3010L + imageCount,
+            extraInfo = ExtraInfo(),
+            beDownload = DOWNLOAD_STATE_DOWNLOADED
+        )
+        posterMaterials.add(0, innerMaterial)
+        return posterMaterials
     }
 
-    suspend fun getSpliceMaterials(): List<Material> {
-        val spliceResponse = materialNetworkService.getSpliceMaterials()
-        return getResponseMaterials(spliceResponse)
-    }
-
-    suspend fun getFreeMaterials(): List<Material> {
+    /**
+     * 通过网络获取自由分类下的素材
+     */
+    suspend fun getNetWorkFreeMaterials(): List<Material> {
         val freeResponse = materialNetworkService.getFreeMaterials()
-        return getResponseMaterials(freeResponse)
+        val freeMaterials = getResponseMaterials(freeResponse)
+        val innerMaterial = Material(
+                                thumbnailUrl = "$assetFilePath/free/thumbnail",
+                                materialId = 3020L,
+                                extraInfo = ExtraInfo(),
+                                beDownload = DOWNLOAD_STATE_DOWNLOADED
+                            )
+        freeMaterials.add(0, innerMaterial)
+        return freeMaterials
     }
 
-    private fun getResponseMaterials(materialResponse: Response): List<Material> {
+    /**
+     * 通过网络获取拼接分类下的素材
+     */
+    suspend fun getNetWorkSpliceMaterials(): List<Material> {
+        val spliceResponse = materialNetworkService.getSpliceMaterials()
+        val spliceMaterials = getResponseMaterials(spliceResponse)
+        val innerMaterial = Material(
+                                thumbnailUrl = "$assetFilePath/splice/thumbnail",
+                                materialId = 3030L,
+                                extraInfo = ExtraInfo(),
+                                beDownload = DOWNLOAD_STATE_DOWNLOADED
+                            )
+        spliceMaterials.add(0, innerMaterial)
+        return spliceMaterials
+    }
+
+    /**
+     * 获取 [materialResponse] 中的全部素材
+     * @param [materialResponse] 网络请求返回的请求体
+     * @return 本次网络请求中返回的全部素材
+     */
+    private fun getResponseMaterials(materialResponse: Response): MutableList<Material> {
         val materials = mutableListOf<Material>()
         if (materialResponse.ret == 0) {
-            val networkFreeSubCategories = materialResponse.data.items.categories.flatMap {
+            val networkSubCategories = materialResponse.data.items.categories.flatMap {
                 it.subCategories
             }
-            val networkFreeMaterials = networkFreeSubCategories.flatMap {
+            val networkMaterials = networkSubCategories.flatMap {
                 it.items
             }
-            materials.addAll(networkFreeMaterials)
+            materials.addAll(networkMaterials)
         }
         return materials
     }

@@ -19,10 +19,13 @@ open class BaseActivity : AppCompatActivity() {
 
     /**
      * 使用同一个 Toast 进行消息提醒，避免连续显示 Toast 时不能取消上一次 Toast 消息
+     * 自动切换到主线程中
      */
     protected fun showToast(message: String) {
-        toast.setText(message)
-        toast.show()
+        launch {
+            toast.setText(message)
+            toast.show()
+        }
     }
 
     /**
