@@ -64,11 +64,11 @@ class MaterialAdapter(
                                                       View.INVISIBLE
                                                   }
         // 新素材图标
-//        holder.newIconImageView.visibility = if (material.downloadProgress <= DOWNLOAD_STATE_NOT_DOWNLOAD) {
-//                                                 View.VISIBLE
-//                                             } else {
-//                                                 View.GONE
-//                                             }
+        holder.newIconImageView.visibility = if (material.beNew == 1) {
+                                                 View.VISIBLE
+                                             } else {
+                                                 View.GONE
+                                             }
         // 下载进度
         holder.downloadProgressView.visibility = if (material.beDownload == DOWNLOAD_STATE_DOWNLOADING) {
                                                      View.VISIBLE

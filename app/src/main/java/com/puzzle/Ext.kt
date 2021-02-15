@@ -1,5 +1,6 @@
 package com.puzzle
 
+import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -42,4 +43,11 @@ suspend fun File.download(body: ResponseBody, onPostProgress : (progress: Int)->
             currentLength = byteStream.read(buffer)
         }
     }
+}
+
+private val toast = Toast.makeText(app, "", Toast.LENGTH_SHORT)
+
+fun showAppToast(message: String) {
+    toast.setText(message)
+    toast.show()
 }

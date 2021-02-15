@@ -1,5 +1,6 @@
 package com.puzzle.material
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
@@ -18,6 +19,13 @@ const val DOWNLOAD_STATE_DOWNLOADED = -2        // 下载完成
 const val MATERIAL_TYPE_POSTER = 0      // 海报
 const val MATERIAL_TYPE_FREE = 1        // 自由
 const val MATERIAL_TYPE_SPLICE = 2      // 拼接
+
+
+/**
+ * 新素材标志位
+ */
+const val MATERIAL_OLD = 0
+const val MATERIAL_NEW = 1
 
 /**
  * 素材
@@ -82,7 +90,7 @@ data class Material(
     var zipUrl: String = "",
     @SerializedName("zip_ver")
     var zipVer: Int = 0,
-    @Ignore
+    @Embedded
     @SerializedName("extra_info")
     var extraInfo: ExtraInfo? = null,
 //  素材下载进度（新增）
@@ -90,5 +98,17 @@ data class Material(
 //  素材下载状态（新增）
     var beDownload: Int = DOWNLOAD_STATE_NOT_DOWNLOAD,
 //  素材分类 - 海报，自由，拼接 (新增)
-    var categoryType: Int = MATERIAL_TYPE_POSTER
+    var categoryType: Int = MATERIAL_TYPE_POSTER,
+//  是否为新上架素材（新增）0:旧素材； 1:新素材
+    var beNew: Int = MATERIAL_OLD
 )
+
+fun List<Material>.materialSort(): List<Material> {
+    return sortedWith(
+        compareByDescending<Material> {
+            it.beTop
+        }.thenByDescending {
+            it.sort
+        }
+    )
+}

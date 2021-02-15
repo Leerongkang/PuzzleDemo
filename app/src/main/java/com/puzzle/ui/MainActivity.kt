@@ -15,6 +15,7 @@ import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
+import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -39,7 +40,6 @@ import kotlinx.android.synthetic.main.layout_template.view.*
 import kotlinx.android.synthetic.main.layout_title.*
 import kotlinx.android.synthetic.main.layout_title.view.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -53,6 +53,9 @@ const val INTENT_EXTRA_DATA_REPLACE = "image_path"
 const val INTENT_REQUEST_CODE_REPLACE_IMAGE = 1
 
 class MainActivity : BaseActivity() {
+
+    // 用于获取素材数据的 viewModel
+    private val viewModel by viewModels<MainActivityViewModel>()
 
     // 边框图片尺寸
     private val frameIconSize = 40
@@ -217,6 +220,9 @@ class MainActivity : BaseActivity() {
                     val zipUrl = material.zipUrl
                     showToast("素材ID：${material.materialId}")
                     downloadMaterial(zipUrl, holder, material)
+                    material.beNew = MATERIAL_OLD
+                    viewModel.updateMaterial(material)
+                    adapter.notifyItemChanged(position)
                 }
             }
             layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
@@ -369,6 +375,7 @@ class MainActivity : BaseActivity() {
                             }
                         }
                         adapter.notifyDataSetChanged()
+
                     }
                     if (!showTemplateGroup) {
                         showImageView.performClick()
@@ -503,25 +510,22 @@ class MainActivity : BaseActivity() {
     /**
      * 并发获取素材
      */
-    private suspend fun loadMaterialData() = withContext(Dispatchers.IO) {
-        val poster = async { MaterialRepository.getNetWorkPosterMaterials(selectNum) }
-        val splice = async { MaterialRepository.getNetWorkSpliceMaterials() }
-        val free = async { MaterialRepository.getNetWorkFreeMaterials() }
-        val posterList = poster.await()
-        val spliceList = splice.await()
-        val freeList = free.await()
-        posterMaterials.addAll(posterList)
-        spliceMaterials.addAll(spliceList)
-        freeMaterials.addAll(freeList)
-        async {
-            MaterialRepository.saveMaterials(posterList)
-        }.await()
-        async {
-            MaterialRepository.saveMaterials(spliceList)
-        }.await()
-        async {
-            MaterialRepository.saveMaterials(freeList)
-        }.await()
+    private suspend fun loadMaterialData() {
+        viewModel.posterMaterials.observe(this) {
+            updateMaterialsList(posterMaterials, it)
+        }
+        viewModel.freeMaterials.observe(this) {
+            updateMaterialsList(freeMaterials, it)
+        }
+        viewModel.spliceMaterials.observe(this) {
+            updateMaterialsList(spliceMaterials, it)
+        }
+        viewModel.pickMaterials(selectNum)
+    }
+
+    private fun updateMaterialsList(materials: MutableList<Material>, update: List<Material>) {
+        materials.clear()
+        materials.addAll(update)
     }
 
     /**

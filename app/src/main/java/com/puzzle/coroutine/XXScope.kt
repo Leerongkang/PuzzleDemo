@@ -1,5 +1,6 @@
 package com.puzzle.coroutine
 
+import com.puzzle.showAppToast
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -7,6 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 
 val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
     throwable.printStackTrace()
+    showAppToast(throwable.toString())
 }
 /**
  * 可以用来做后台IO任务的协程Scope

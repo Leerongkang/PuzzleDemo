@@ -75,3 +75,7 @@ data class ExtraInfo(
     @SerializedName("is_with_filter")
     val beWithFilter: Int = 0
 )
+
+const val NETWORK_ERROR = -8523
+
+fun errorResponse(msg: String) = Response(Data(CategoryGroup()), msg, errorCode = NETWORK_ERROR)
