@@ -4,17 +4,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.puzzle.app
 import com.puzzle.coroutine.XXMainScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-open class BaseActivity : AppCompatActivity() {
+open class BaseActivity : AppCompatActivity(),
+    CoroutineScope by XXMainScope() {
 
-    private val mainScope = XXMainScope()
     private var toast: Toast = Toast.makeText(app, "", Toast.LENGTH_SHORT)
 
     override fun onDestroy() {
         super.onDestroy()
-        mainScope.cancel()
+        cancel()
     }
 
     /**
@@ -25,15 +26,6 @@ open class BaseActivity : AppCompatActivity() {
         launch {
             toast.setText(message)
             toast.show()
-        }
-    }
-
-    /**
-     * 简化协程的启动方式，并将协程与生命周期关联
-     */
-    protected fun launch(block: suspend () -> Unit) {
-        mainScope.launch {
-            block()
         }
     }
 }

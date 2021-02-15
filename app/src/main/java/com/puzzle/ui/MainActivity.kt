@@ -1,8 +1,5 @@
 package com.puzzle.ui
 
-import DOWNLOAD_STATE_DOWNLOADED
-import DOWNLOAD_STATE_DOWNLOADING
-import Material
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
@@ -23,14 +20,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.puzzle.R
-import com.puzzle.adappter.MaterialAdapter
-import com.puzzle.adappter.MaterialViewHolder
-import com.puzzle.adappter.TemplateAdapter
+import com.puzzle.ui.adappter.MaterialAdapter
+import com.puzzle.ui.adappter.MaterialViewHolder
+import com.puzzle.ui.adappter.TemplateAdapter
 import com.puzzle.download
 import com.puzzle.dp2px
-import com.puzzle.material.MaterialRepository
-import com.puzzle.material.Template
-import com.puzzle.material.TemplateData
+import com.puzzle.material.*
 import com.puzzle.network.DownloadServiceCreator
 import com.puzzle.network.MATERIAL_DOWNLOAD_BASE_URL
 import com.puzzle.network.MaterialDownloadService
@@ -45,6 +40,7 @@ import kotlinx.android.synthetic.main.layout_title.*
 import kotlinx.android.synthetic.main.layout_title.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.roundToInt
@@ -483,11 +479,11 @@ class MainActivity : BaseActivity() {
         var finalWidth = containerWidth
         // 通过模板宽度与父容器宽度比例计算拼图高度
         var finalHeight =
-            (templateHeight * (containerWidth / templateWidth.toDouble())).roundToInt()
+            (templateHeight * (containerWidth / templateWidth.toDouble())).toInt()
         // 如果计算得出的拼图高度大于父容器高度，则使用父容器高度计算比例，再求拼图宽度
         if (finalHeight > containerHeight) {
             finalHeight = containerHeight
-            finalWidth = (templateWidth * (containerHeight / templateHeight.toDouble())).roundToInt()
+            finalWidth = (templateWidth * (containerHeight / templateHeight.toDouble())).toInt()
         }
         // 设置缩放比例
         puzzleLayout.proportion = finalHeight / templateHeight.toDouble()
@@ -511,9 +507,21 @@ class MainActivity : BaseActivity() {
         val poster = async { MaterialRepository.getNetWorkPosterMaterials(selectNum) }
         val splice = async { MaterialRepository.getNetWorkSpliceMaterials() }
         val free = async { MaterialRepository.getNetWorkFreeMaterials() }
-        posterMaterials.addAll(poster.await())
-        spliceMaterials.addAll(splice.await())
-        freeMaterials.addAll(free.await())
+        val posterList = poster.await()
+        val spliceList = splice.await()
+        val freeList = free.await()
+        posterMaterials.addAll(posterList)
+        spliceMaterials.addAll(spliceList)
+        freeMaterials.addAll(freeList)
+        async {
+            MaterialRepository.saveMaterials(posterList)
+        }.await()
+        async {
+            MaterialRepository.saveMaterials(spliceList)
+        }.await()
+        async {
+            MaterialRepository.saveMaterials(freeList)
+        }.await()
     }
 
     /**

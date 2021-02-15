@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.permissionx.guolindev.PermissionX
 import com.puzzle.R
-import com.puzzle.adappter.ImageAdapter
+import com.puzzle.ui.adappter.ImageAdapter
 import kotlinx.android.synthetic.main.activity_image_select.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

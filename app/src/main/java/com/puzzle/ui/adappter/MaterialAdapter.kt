@@ -1,8 +1,5 @@
-package com.puzzle.adappter
+package com.puzzle.ui.adappter
 
-import DOWNLOAD_STATE_DOWNLOADING
-import DOWNLOAD_STATE_NOT_DOWNLOAD
-import Material
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +10,9 @@ import com.bumptech.glide.integration.webp.decoder.WebpDrawable
 import com.bumptech.glide.integration.webp.decoder.WebpDrawableTransformation
 import com.bumptech.glide.load.resource.bitmap.CenterInside
 import com.puzzle.R
+import com.puzzle.material.DOWNLOAD_STATE_DOWNLOADING
+import com.puzzle.material.DOWNLOAD_STATE_NOT_DOWNLOAD
+import com.puzzle.material.Material
 import com.puzzle.ui.view.ProgressView
 
 

@@ -1,6 +1,6 @@
 package com.puzzle.network
 
-import Response
+import com.puzzle.material.Response
 import retrofit2.http.GET
 
 /**

@@ -1,4 +1,4 @@
-package com.puzzle.adappter
+package com.puzzle.ui.adappter
 
 import android.view.LayoutInflater
 import android.view.View
