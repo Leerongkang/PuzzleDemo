@@ -1,8 +1,11 @@
 package com.puzzle.material
 
+import androidx.annotation.Keep
+
 /**
  * 用于保存整个拼图模板的数据
  */
+@Keep
 data class Template(
     val imageCount: Int = 0,                        // 该模板的图片数量
     val totalHeight: Int = 0,                       // 该模板的总高度
@@ -14,6 +17,7 @@ data class Template(
 /**
  * 用于保存单张拼图的位置信息
  */
+@Keep
 data class TemplateInfo(
     val left: Int = 0,
     val top: Int = 0,

@@ -1,7 +1,9 @@
 package com.puzzle.material
 
+import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 
+@Keep
 data class Response(
     val data: Data,
     val error: String = "",
@@ -14,6 +16,7 @@ data class Response(
 /**
  * 素材数据包
  */
+@Keep
 data class Data(
     val items: CategoryGroup,
     @SerializedName("next_cursor")
@@ -23,6 +26,7 @@ data class Data(
 /**
  * 素材一级分类
  */
+@Keep
 data class CategoryGroup(
     val categories: List<Category> = emptyList(),
     val id: Int = 0,
@@ -32,6 +36,7 @@ data class CategoryGroup(
 /**
  * 素材二级分类
  */
+@Keep
 data class Category(
     @SerializedName("category_id")
     val categoryId: Int = 0,
@@ -45,6 +50,7 @@ data class Category(
 /**
  * 素材三级分类
  */
+@Keep
 data class SubCategory(
     @SerializedName("end_time")
     val endTime: Long = 0L,
@@ -65,6 +71,7 @@ data class SubCategory(
 /**
  * 素材额外信息
  */
+@Keep
 data class ExtraInfo(
     @SerializedName("is_choose_color")
     val beChooseColor: Int = 0,

@@ -1,8 +1,8 @@
 package com.puzzle.material
 
+import androidx.annotation.Keep
 import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
@@ -31,6 +31,7 @@ const val MATERIAL_NEW = 1
  * 素材
  */
 @Entity
+@Keep
 data class Material(
     @PrimaryKey
     @SerializedName("material_id")

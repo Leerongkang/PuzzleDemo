@@ -12,18 +12,17 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.text.TextUtils
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.puzzle.R
-import com.puzzle.ui.adappter.MaterialAdapter
-import com.puzzle.ui.adappter.MaterialViewHolder
-import com.puzzle.ui.adappter.TemplateAdapter
 import com.puzzle.download
 import com.puzzle.dp2px
 import com.puzzle.material.*
@@ -31,6 +30,9 @@ import com.puzzle.network.DownloadServiceCreator
 import com.puzzle.network.MATERIAL_DOWNLOAD_BASE_URL
 import com.puzzle.network.MaterialDownloadService
 import com.puzzle.parsePathFileName
+import com.puzzle.ui.adappter.MaterialAdapter
+import com.puzzle.ui.adappter.MaterialViewHolder
+import com.puzzle.ui.adappter.TemplateAdapter
 import com.puzzle.ui.view.PuzzleImageView
 import com.puzzle.ui.view.PuzzleLayout
 import kotlinx.android.synthetic.main.activity_main.*
@@ -43,7 +45,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import kotlin.math.roundToInt
 
 /**
  * 拼图Activity
@@ -701,6 +702,33 @@ class MainActivity : BaseActivity() {
      * 边框模式的更新
      */
     private fun updateFrameMode() {
+        Log.d("kkl", "cpu: ${Build.SUPPORTED_ABIS.joinToString { it }}")
+        Toast.makeText(this, "cpu: ${Build.SUPPORTED_ABIS.joinToString { it }}", Toast.LENGTH_SHORT).show()
+        Log.d("build","BOARD:" + Build.BOARD);
+        Log.d("build","BOOTLOADER:" + Build.BOOTLOADER);
+        Log.d("build","BRAND:" + Build.BRAND);
+        Log.d("build","CPU_ABI:" + Build.CPU_ABI);
+        Log.d("build","CPU_ABI2:" + Build.CPU_ABI2);
+        Log.d("build","DEVICE:" + Build.DEVICE);
+        Log.d("build","DISPLAY:" + Build.DISPLAY);
+        Log.d("build","FINGERPRINT:" + Build.FINGERPRINT);
+        Log.d("build","HARDWARE:" + Build.HARDWARE);
+        Log.d("build","HOST:" + Build.HOST);
+        Log.d("build","ID:" + Build.ID);
+        Log.d("build","MANUFACTURER:" + Build.MANUFACTURER);
+        Log.d("build","MODEL:" + Build.MODEL);
+        Log.d("build","PRODUCT:" + Build.PRODUCT);
+        Log.d("build","RADIO:" + Build.RADIO);
+        Log.d("build","TAGS:" + Build.TAGS);
+        Log.d("build","TIME:" + Build.TIME);
+        Log.d("build","TYPE:" + Build.TYPE);
+        Log.d("build","UNKNOWN:" + Build.UNKNOWN);
+        Log.d("build","USER:" + Build.USER);
+        Log.d("build","VERSION.CODENAME:" + Build.VERSION.CODENAME);
+        Log.d("build","VERSION.INCREMENTAL:" + Build.VERSION.INCREMENTAL);
+        Log.d("build","VERSION.RELEASE:" + Build.VERSION.RELEASE);
+        Log.d("build","VERSION.SDK:" + Build.VERSION.SDK);
+        Log.d("build","VERSION.SDK_INT:" + Build.VERSION.SDK_INT);
         currentFrameMode = when (currentFrameMode.first) {
             R.drawable.meitu_puzzle__frame_none -> {
                 puzzleLayout.updateFrameSize(PuzzleLayout.FRAME_SMALL)

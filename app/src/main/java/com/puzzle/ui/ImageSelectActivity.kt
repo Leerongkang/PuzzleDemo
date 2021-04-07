@@ -35,12 +35,12 @@ class ImageSelectActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_select)
-        isReplaceImage = intent.getBooleanExtra(INTENT_EXTRA_REPLACE,false)
+        isReplaceImage = intent.getBooleanExtra(INTENT_EXTRA_REPLACE, false)
         requestPermission()
         initViews()
     }
 
-    private fun initAllImageRecyclerView(){
+    private fun initAllImageRecyclerView() {
         launch {
             selectLoadingAnimateView.playAnimation()
             selectLoadingAnimateView.alpha = 1F
